@@ -1,9 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>HubSaude.Cliente</RootNamespace>
+    <AssemblyName>HubSaude.Cliente</AssemblyName>
+
+    <IsPackable>true</IsPackable>
+    <PackageId>HubSaude.Cliente</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>SES-GO; UFG/INF</Authors>
+    <Company>SES-GO e UFG/INF — Fábrica de Software</Company>
+    <Description>Cliente C#/.NET para obtenção de tokens de acesso ao HubSaúde via SMART Backend Services (SMART-on-FHIR).</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/sesgo-ti/hubsaude-cliente-csharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sesgo-ti/hubsaude-cliente-csharp.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>HubSaude;SMART;FHIR;OAuth;Healthcare;SES-GO</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HubSaude.Cliente.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
 
 </Project>

@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>default</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>
