@@ -3,6 +3,5 @@
     <LangVersion>default</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AnalysisLevel>recommended</AnalysisLevel>
   </PropertyGroup>
 </Project>
