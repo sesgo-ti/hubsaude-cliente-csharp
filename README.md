@@ -1,66 +1,66 @@
 # hubsaude-cliente-csharp
 
 [![Version](https://img.shields.io/badge/Version-0.1.0-yellow)]()
-[![.NET 8](https://img.shields.io/badge/.NET-8.0-blue)]()
+[![.NET 8](https://img.shields.io/badge/.NET-10.0-blue)]()
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-Cliente C#/.NET para obtenção de tokens de acesso ao HubSaúde via
+Cliente C#/.NET para obtenï¿½ï¿½o de tokens de acesso ao HubSaï¿½de via
 [SMART Backend Services](https://hl7.org/fhir/smart-app-launch/backend-services.html)
 (SMART-on-FHIR). Encapsula a montagem do JWT *client assertion*, sua
 assinatura e a troca pelo *access token* no endpoint OAuth 2.0.
 
-O contrato comportamental está em [`ESPECIFICACAO.md`](ESPECIFICACAO.md)
-— requisitos normativos que refletem esta implementação e servem de
-referência para o portfólio oficial de SDKs: Java, TypeScript/Node.js
-(consumível também por JavaScript), C#/.NET e Python.
+O contrato comportamental estï¿½ em [`ESPECIFICACAO.md`](ESPECIFICACAO.md)
+ï¿½ requisitos normativos que refletem esta implementaï¿½ï¿½o e servem de
+referï¿½ncia para o portfï¿½lio oficial de SDKs: Java, TypeScript/Node.js
+(consumï¿½vel tambï¿½m por JavaScript), C#/.NET e Python.
 
-## Dependência NuGet
+## Dependï¿½ncia NuGet
 
 <!-- Definir quando o pacote NuGet for publicado. -->
 
-## Política da API pública
+## Polï¿½tica da API pï¿½blica
 
-Enquanto a biblioteca estiver na série `0.x`, sua API é provisória:
-versões `MINOR` podem introduzir mudanças incompatíveis e versões `PATCH`
-preservam compatibilidade. A partir de `1.0.0`, a evolução seguirá
+Enquanto a biblioteca estiver na sï¿½rie `0.x`, sua API ï¿½ provisï¿½ria:
+versï¿½es `MINOR` podem introduzir mudanï¿½as incompatï¿½veis e versï¿½es `PATCH`
+preservam compatibilidade. A partir de `1.0.0`, a evoluï¿½ï¿½o seguirï¿½
 estritamente o
-[Versionamento Semântico 2.0.0](https://semver.org/lang/pt-BR/).
+[Versionamento Semï¿½ntico 2.0.0](https://semver.org/lang/pt-BR/).
 
-<!-- Definir detalhes da API pública C#/.NET. -->
+<!-- Definir detalhes da API pï¿½blica C#/.NET. -->
 
-## Uso básico
+## Uso bï¿½sico
 
-<!-- Definir após a implementação da API pública. -->
+<!-- Definir apï¿½s a implementaï¿½ï¿½o da API pï¿½blica. -->
 
 ## Ciclo de vida, cache e erros
 
-<!-- Definir após a implementação da API pública. -->
+<!-- Definir apï¿½s a implementaï¿½ï¿½o da API pï¿½blica. -->
 
 ## Fontes de chave (`SigningStrategy`)
 
-A escolha de *onde* a chave privada reside é a decisão arquitetural
-mais relevante para uma integração de produção:
+A escolha de *onde* a chave privada reside ï¿½ a decisï¿½o arquitetural
+mais relevante para uma integraï¿½ï¿½o de produï¿½ï¿½o:
 
-| Fonte | Quando usar | Exposição da chave |
+| Fonte | Quando usar | Exposiï¿½ï¿½o da chave |
 |-------|-------------|--------------------|
-| PEM (PKCS#8) | Prototipação e testes | Arquivo em claro no disco |
-| PEM com senha | Mitigação adicional quando PEM é inevitável | Cifrada em disco; senha em runtime |
-| PKCS#12 direto | **Recomendado para produção** com chaves em software | Permanece dentro do armazenamento de certificados |
-| HSM via PKCS#11 | Produção com chave não-exportável | Nunca sai do hardware |
+| PEM (PKCS#8) | Prototipaï¿½ï¿½o e testes | Arquivo em claro no disco |
+| PEM com senha | Mitigaï¿½ï¿½o adicional quando PEM ï¿½ inevitï¿½vel | Cifrada em disco; senha em runtime |
+| PKCS#12 direto | **Recomendado para produï¿½ï¿½o** com chaves em software | Permanece dentro do armazenamento de certificados |
+| HSM via PKCS#11 | Produï¿½ï¿½o com chave nï¿½o-exportï¿½vel | Nunca sai do hardware |
 | OpenBao (cofre) | Chave provisionada por cofre central | Buscada em runtime; nunca em disco |
 
-### Tamanho mínimo de chave
+### Tamanho mï¿½nimo de chave
 
-Chaves fracas são rejeitadas no carregamento e na construção da
-estratégia de assinatura (fail-fast), conforme NIST SP 800-57:
+Chaves fracas sï¿½o rejeitadas no carregamento e na construï¿½ï¿½o da
+estratï¿½gia de assinatura (fail-fast), conforme NIST SP 800-57:
 
-| Algoritmo | Mínimo aceito |
+| Algoritmo | Mï¿½nimo aceito |
 |-----------|---------------|
-| RSA | 2048 bits (módulo) |
+| RSA | 2048 bits (mï¿½dulo) |
 | EC | P-256 (campo de 256 bits) |
 
-Handles PKCS#11 opacos que não expõem os parâmetros da chave não são
-validados (a política de tamanho fica a cargo do HSM).
+Handles PKCS#11 opacos que nï¿½o expï¿½em os parï¿½metros da chave nï¿½o sï¿½o
+validados (a polï¿½tica de tamanho fica a cargo do HSM).
 
 ### PKCS#12 direto
 
@@ -70,7 +70,7 @@ validados (a política de tamanho fica a cargo do HSM).
 
 <!-- Definir API C#/.NET. -->
 
-### OpenBao / chave já carregada
+### OpenBao / chave jï¿½ carregada
 
 <!-- Definir API C#/.NET. -->
 
@@ -78,64 +78,64 @@ validados (a política de tamanho fica a cargo do HSM).
 
 <!-- Definir API C#/.NET. -->
 
-## Configuração avançada
+## Configuraï¿½ï¿½o avanï¿½ada
 
 <!-- Definir API C#/.NET. -->
 
-O endpoint deve usar `https`; o esquema `http` é aceito apenas para
+O endpoint deve usar `https`; o esquema `http` ï¿½ aceito apenas para
 `localhost`/`127.0.0.1` (desenvolvimento e testes locais).
 
 Valores menores ou iguais a zero em `assertionTtlSeconds`, `maxRetries`
-e `tokenCacheMarginSeconds` são substituídos pelos padrões de 60 s, 3
+e `tokenCacheMarginSeconds` sï¿½o substituï¿½dos pelos padrï¿½es de 60 s, 3
 tentativas totais e 30 s, respectivamente. `tokenCacheMaxEntries` deve
-ser positivo; valor inválido faz a construção do cliente falhar.
+ser positivo; valor invï¿½lido faz a construï¿½ï¿½o do cliente falhar.
 
-### Contexto de Guia de Implementação (`hub_ctx`)
+### Contexto de Guia de Implementaï¿½ï¿½o (`hub_ctx`)
 
-O claim proprietário `hub_ctx` declara o Guia de Implementação (IG) e a
-versão pretendidos na sessão. Configure conforme definido na
+O claim proprietï¿½rio `hub_ctx` declara o Guia de Implementaï¿½ï¿½o (IG) e a
+versï¿½o pretendidos na sessï¿½o. Configure conforme definido na
 `ESPECIFICACAO.md`.
 
 ### Identificador de chave (`kid`)
 
-Quando o servidor de autorização publica múltiplas chaves (JWKS), use
+Quando o servidor de autorizaï¿½ï¿½o publica mï¿½ltiplas chaves (JWKS), use
 `keyId` para incluir o header `kid` no *client assertion*, permitindo que
-o servidor selecione a chave pública correta para validar a assinatura.
+o servidor selecione a chave pï¿½blica correta para validar a assinatura.
 
-### Descoberta automática do endpoint
+### Descoberta automï¿½tica do endpoint
 
-Em vez de fixar `tokenEndpoint`, informe a base FHIR — o cliente resolve
+Em vez de fixar `tokenEndpoint`, informe a base FHIR ï¿½ o cliente resolve
 via `.well-known/smart-configuration`.
 
-### `serverTrustAnchor` — quando usar
+### `serverTrustAnchor` ï¿½ quando usar
 
-Em produção o HubSaúde usa CA já presente no trust store padrão do .NET.
-Use uma autoridade de certificação customizada apenas em testes locais,
-homologação com CA interna ou desenvolvimento com certificados ad hoc.
+Em produï¿½ï¿½o o HubSaï¿½de usa CA jï¿½ presente no trust store padrï¿½o do .NET.
+Use uma autoridade de certificaï¿½ï¿½o customizada apenas em testes locais,
+homologaï¿½ï¿½o com CA interna ou desenvolvimento com certificados ad hoc.
 
-## Preparação de certificados PFX/P12 ? PEM
+## Preparaï¿½ï¿½o de certificados PFX/P12 ? PEM
 
-<!-- Definir instruções específicas para C#/.NET. -->
+<!-- Definir instruï¿½ï¿½es especï¿½ficas para C#/.NET. -->
 
-## Resiliência em produção
+## Resiliï¿½ncia em produï¿½ï¿½o
 
-A biblioteca já cobre cache de token + *retries* com *backoff*. Para
-proteção adicional contra falhas prolongadas do AS, combine com um
-*circuit breaker* externo na camada de orquestração.
+A biblioteca jï¿½ cobre cache de token + *retries* com *backoff*. Para
+proteï¿½ï¿½o adicional contra falhas prolongadas do AS, combine com um
+*circuit breaker* externo na camada de orquestraï¿½ï¿½o.
 
-## Correlação e observabilidade (`traceparent`)
+## Correlaï¿½ï¿½o e observabilidade (`traceparent`)
 
-O HubSaúde ignora headers como `X-Correlation-Id` enviados pelo
-cliente: a correlação é derivada exclusivamente do contexto de
+O HubSaï¿½de ignora headers como `X-Correlation-Id` enviados pelo
+cliente: a correlaï¿½ï¿½o ï¿½ derivada exclusivamente do contexto de
 trace W3C ([W3C Trace Context](https://www.w3.org/TR/trace-context/)).
 
-Por isso, toda requisição HTTP desta biblioteca (token endpoint e
+Por isso, toda requisiï¿½ï¿½o HTTP desta biblioteca (token endpoint e
 descoberta via `.well-known/smart-configuration`) envia o header
-`traceparent` conforme definido na especificação.
+`traceparent` conforme definido na especificaï¿½ï¿½o.
 
 ## Troubleshooting
 
-| Erro | Causa provável | Solução |
+| Erro | Causa provï¿½vel | Soluï¿½ï¿½o |
 |------|----------------|---------|
 | | | |
 
