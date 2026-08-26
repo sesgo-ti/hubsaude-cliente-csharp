@@ -11,6 +11,11 @@ indent_size = 4
 indent_size = 4
 end_of_line = crlf
 
+[*.cs]
+file_header_template = SPDX-License-Identifier: Apache-2.0\nCopyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG).
+
+dotnet_diagnostic.IDE0073.severity = error
+
 # Organize usings
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
