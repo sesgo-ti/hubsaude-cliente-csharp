@@ -47,6 +47,7 @@ dotnet_diagnostic.CS8618.severity = warning
 
 [*.{json,yml,yaml,md}]
 indent_size = 2
+charset = utf-8
 
 [*.csproj]
 indent_size = 2

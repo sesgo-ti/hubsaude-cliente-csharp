@@ -1,28 +1,28 @@
 # Como contribuir com hubsaude-cliente-csharp
 
 Obrigado pelo interesse em contribuir! Este documento descreve o processo
-padronizado de contribui??o.
+padronizado de contribuição.
 
-## C?digo de conduta
+## Código de conduta
 
-Toda intera??o est? sujeita ao [C?digo de Conduta](CODE_OF_CONDUCT.md),
+Toda interação está sujeita ao [Código de Conduta](CODE_OF_CONDUCT.md),
 baseado no Contributor Covenant 2.1.
 
-## Licen?a das contribui??es
+## Licença das contribuições
 
-Ao submeter um Pull Request, voc? concorda em licenciar sua contribui??o
-sob a **Apache License 2.0**, a mesma licen?a deste projeto. Veja
+Ao submeter um Pull Request, você concorda em licenciar sua contribuição
+sob a **Apache License 2.0**, a mesma licença deste projeto. Veja
 [LICENSE](LICENSE).
 
 ## Developer Certificate of Origin (DCO)
 
 Este projeto adota o [Developer Certificate of Origin 1.1](https://developercertificate.org/).
-Toda contribui??o precisa ter `Signed-off-by:` em cada commit.
+Toda contribuição precisa ter `Signed-off-by:` em cada commit.
 
 Assine automaticamente:
 
 ```bash
-git commit -s -m "feat: minha altera??o"
+git commit -s -m "feat: minha alteração"
 ```
 
 Isso adiciona ao corpo da mensagem:
@@ -31,11 +31,11 @@ Isso adiciona ao corpo da mensagem:
 Signed-off-by: Seu Nome <seu@email.com>
 ```
 
-Esse trailer atesta que voc? tem direito de submeter o trabalho sob a
-licen?a do projeto, conforme o texto integral do DCO. Commits sem
-`Signed-off-by:` ser?o bloqueados pelo CI.
+Esse trailer atesta que você tem direito de submeter o trabalho sob a
+licença do projeto, conforme o texto integral do DCO. Commits sem
+`Signed-off-by:` serão bloqueados pelo CI.
 
-## Fluxo de contribui??o
+## Fluxo de contribuição
 
 1. **Issue primeiro**: abra ou comente em uma issue descrevendo o problema
    ou a feature.
@@ -46,13 +46,13 @@ licen?a do projeto, conforme o texto integral do DCO. Commits sem
 3. **Conventional Commits**:
 
    * `feat:` nova funcionalidade
-   * `fix:` corre??o de bug
-   * `docs:` documenta??o
+   * `fix:` correção de bug
+   * `docs:` documentação
    * `refactor:`, `test:`, `chore:`, `perf:`, `build:`, `ci:`
 
-4. **Testes obrigat?rios**: toda mudan?a de comportamento exige teste novo
-   ou atualiza??o do existente. Cobertura ? monitorada via Coverlet
-   (m?nimo de 85% no `hubsaude-cliente-csharp`).
+4. **Testes obrigatórios**: toda mudança de comportamento exige teste novo
+   ou atualização do existente. Cobertura é monitorada via Coverlet
+   (mínimo de 85% no `hubsaude-cliente-csharp`).
 
 5. **Build verde** localmente antes de abrir PR:
 
@@ -60,51 +60,51 @@ licen?a do projeto, conforme o texto integral do DCO. Commits sem
    dotnet test HubSaude.Cliente.sln --configuration Release
    ```
 
-   O gate de cobertura j? est? configurado no projeto de testes; falhas abaixo
+   O gate de cobertura já está configurado no projeto de testes; falhas abaixo
    de 85% de line coverage interrompem o build.
 
-6. **PR pequeno e focado**: prefira PRs de at? ~400 linhas modificadas.
+6. **PR pequeno e focado**: prefira PRs de até ~400 linhas modificadas.
 
-7. **Descri??o do PR**: explique *o qu?*, *por qu?* e *como testar*.
+7. **Descrição do PR**: explique *o quê*, *por quê* e *como testar*.
    Referencie issues com `Closes #123`.
 
-## Padr?es t?cnicos
+## Padrões técnicos
 
-* .NET: utilizar a vers?o do SDK especificada em `global.json`, quando presente.
-* C#: seguir as conven??es oficiais de nomenclatura e estilo da linguagem.
-* Linhas: preferencialmente curtas e leg?veis; respeitar as regras de formata??o
+* .NET: utilizar a versão do SDK especificada em `global.json`, quando presente.
+* C#: seguir as convenções oficiais de nomenclatura e estilo da linguagem.
+* Linhas: preferencialmente curtas e legíveis; respeitar as regras de formatação
   configuradas no projeto (`.editorconfig`).
-* XML documentation comments: a API p?blica deve ser documentada com coment?rios
-  XML quando aplic?vel.
+* XML documentation comments: a API pública deve ser documentada com comentários
+  XML quando aplicável.
 * Nullable Reference Types: manter o tratamento de nulabilidade habilitado e
-  corrigir warnings relacionados a refer?ncias nulas.
-* Async/await: opera??es de I/O ass?ncronas devem utilizar async/await conforme
-  as conven??es do .NET.
-* IDisposable: recursos que exigem libera??o expl?cita devem seguir o padr?o
+  corrigir warnings relacionados a referências nulas.
+* Async/await: operações de I/O assíncronas devem utilizar async/await conforme
+  as convenções do .NET.
+* IDisposable: recursos que exigem liberação explícita devem seguir o padrão
   `IDisposable`/`IAsyncDisposable` apropriado.
-* Testes: testes automatizados devem ser independentes de servi?os externos
-  sempre que poss?vel.
-* Depend?ncias: evitar depend?ncias desnecess?rias e manter os pacotes NuGet
-  atualizados conforme a pol?tica do projeto.
+* Testes: testes automatizados devem ser independentes de serviços externos
+  sempre que possível.
+* Dependências: evitar dependências desnecessárias e manter os pacotes NuGet
+  atualizados conforme a política do projeto.
 
-## Pol?tica de versionamento
+## Política de versionamento
 
 [Semantic Versioning 2.0.0](https://semver.org/lang/pt-BR/):
 
-* durante a s?rie `0.x`, **MINOR** pode incluir mudan?as incompat?veis e
+* durante a série `0.x`, **MINOR** pode incluir mudanças incompatíveis e
   **PATCH** preserva compatibilidade;
-* a partir de `1.0.0`, **MAJOR** indica quebra na API p?blica, **MINOR**
-  adiciona funcionalidade compat?vel e **PATCH** cont?m corre??es compat?veis.
+* a partir de `1.0.0`, **MAJOR** indica quebra na API pública, **MINOR**
+  adiciona funcionalidade compatível e **PATCH** contém correções compatíveis.
 
-Apenas a MAJOR mais recente recebe corre??es de seguran?a
+Apenas a MAJOR mais recente recebe correções de segurança
 (ver [SECURITY.md](SECURITY.md)).
 
-## Pol?tica de seguran?a
+## Política de segurança
 
-Vulnerabilidades **n?o** devem ser reportadas como issues p?blicas. Veja
+Vulnerabilidades **não** devem ser reportadas como issues públicas. Veja
 [SECURITY.md](SECURITY.md) para o canal apropriado.
 
-## D?vidas
+## Dúvidas
 
 Abra uma [Discussion](https://github.com/sesgo-ti/hubsaude-cliente-csharp/discussions)
 ou contate os mantenedores via issue.
