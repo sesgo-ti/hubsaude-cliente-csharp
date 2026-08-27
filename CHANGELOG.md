@@ -1,9 +1,9 @@
 # Changelog
 
-Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
+Todas as mudan?as not?veis neste projeto ser?o documentadas neste arquivo.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
+O formato ? baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
+e este projeto adere ao [Versionamento Sem?ntico](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
@@ -14,14 +14,14 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## Convenções de Versionamento
+## Conven??es de Versionamento
 
-- **MAJOR**: Mudanças incompatíveis na API pública
-- **MINOR**: Novas funcionalidades compatíveis com versões anteriores
-- **PATCH**: Correções de bugs compatíveis com versões anteriores
+- **MAJOR**: Mudan?as incompat?veis na API p?blica
+- **MINOR**: Novas funcionalidades compat?veis com vers?es anteriores
+- **PATCH**: Corre??es de bugs compat?veis com vers?es anteriores
 
 ## Links
 
-- [Repositório](https://github.com/sesgo-ti/hubsaude-cliente-csharp)
-- [Repositório Origem](https://github.com/sesgo-ti/hubsaude-cliente-java)
-- [Documentação SMART Backend Services](https://hl7.org/fhir/smart-app-launch/backend-services.html)
+- [Reposit?rio](https://github.com/sesgo-ti/hubsaude-cliente-csharp)
+- [Reposit?rio Origem](https://github.com/sesgo-ti/hubsaude-cliente-java)
+- [Documenta??o SMART Backend Services](https://hl7.org/fhir/smart-app-launch/backend-services.html)

@@ -1,63 +1,63 @@
-# Política de Segurança — hubsaude-cliente-csharp
+# Pol?tica de Seguran?a ? hubsaude-cliente-csharp
 
-## Versões suportadas
+## Vers?es suportadas
 
-Apenas a versão **MAJOR mais recente** publicada recebe
-correções de segurança. Versões anteriores são consideradas fim-de-vida
-(EOL) a partir do lançamento de uma nova MAJOR.
+Apenas a vers?o **MAJOR mais recente** publicada recebe
+corre??es de seguran?a. Vers?es anteriores s?o consideradas fim-de-vida
+(EOL) a partir do lan?amento de uma nova MAJOR.
 
-| Versão        | Suportada |
+| Vers?o        | Suportada |
 | ------------- | --------- |
 | MAJOR atual   | ?        |
 | MAJOR anterior| ?        |
 
 ## Como reportar uma vulnerabilidade
 
-Pedimos **divulgação responsável**. Não abra issues públicas para
-vulnerabilidades de segurança. Use um dos canais abaixo.
+Pedimos **divulga??o respons?vel**. N?o abra issues p?blicas para
+vulnerabilidades de seguran?a. Use um dos canais abaixo.
 
-### Canal preferencial — GitHub Security Advisories
+### Canal preferencial ? GitHub Security Advisories
 
 Abra um *private security advisory* em:
 
 <https://github.com/sesgo-ti/hubsaude-cliente-csharp/security/advisories/new>
 
 Vantagens:
-- Histórico privado, com auditoria
-- Permite atribuição de CVE pelo GitHub
+- Hist?rico privado, com auditoria
+- Permite atribui??o de CVE pelo GitHub
 - Integra com o fluxo de patch
 
-### Canal alternativo — e-mail
+### Canal alternativo ? e-mail
 
-Caso não use o GitHub, envie para:
+Caso n?o use o GitHub, envie para:
 
 **kyriosdata@ufg.br**
 
-Inclua, sempre que possível:
-- Descrição do problema e impacto estimado
-- Passos para reproduzir (PoC mínimo)
-- Versões afetadas
-- Sugestão de mitigação, se houver
+Inclua, sempre que poss?vel:
+- Descri??o do problema e impacto estimado
+- Passos para reproduzir (PoC m?nimo)
+- Vers?es afetadas
+- Sugest?o de mitiga??o, se houver
 
 ## Processo de resposta
 
 | Etapa                                 | Prazo-alvo            |
 | ------------------------------------- | --------------------- |
-| Acuso de recebimento                  | 3 dias úteis          |
-| Avaliação inicial e classificação     | 10 dias úteis         |
-| Correção em ramo privado              | conforme severidade   |
-| Coordenação de divulgação             | acordada com o autor  |
-| Release com correção + advisory       | conforme severidade   |
+| Acuso de recebimento                  | 3 dias ?teis          |
+| Avalia??o inicial e classifica??o     | 10 dias ?teis         |
+| Corre??o em ramo privado              | conforme severidade   |
+| Coordena??o de divulga??o             | acordada com o autor  |
+| Release com corre??o + advisory       | conforme severidade   |
 
 Severidade segue [CVSS v3.1](https://www.first.org/cvss/v3-1/specification-document).
 
 ## Reconhecimento
 
-Pesquisadores que reportarem vulnerabilidades de boa-fé serão
-reconhecidos publicamente no advisory, salvo solicitação explícita de
+Pesquisadores que reportarem vulnerabilidades de boa-f? ser?o
+reconhecidos publicamente no advisory, salvo solicita??o expl?cita de
 anonimato.
 
 ## Escopo
 
 Este documento cobre o artefato publicado como
-`br.gov.go.saude.hubsaude:hubsaude-cliente-csharp`.
+`HubSaude.Cliente` (pacote NuGet).

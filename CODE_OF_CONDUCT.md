@@ -1,141 +1,141 @@
-# Código de Conduta do Pacto de Colaboradores
+# C?digo de Conduta do Pacto de Colaboradores
 
 ## Nosso Compromisso
 
-Como membros, colaboradores e líderes, nos comprometemos a fazer da
-participação na nossa comunidade uma experiência livre de assédio para
-todas as pessoas, independentemente de idade, dimensão corporal,
-deficiência visível ou invisível, etnia, características sexuais,
-identidade e expressão de gênero, nível de experiência, educação,
-status socioeconômico, nacionalidade, aparência pessoal, raça, casta,
-cor, religião, ou identidade e orientação sexual.
+Como membros, colaboradores e l?deres, nos comprometemos a fazer da
+participa??o na nossa comunidade uma experi?ncia livre de ass?dio para
+todas as pessoas, independentemente de idade, dimens?o corporal,
+defici?ncia vis?vel ou invis?vel, etnia, caracter?sticas sexuais,
+identidade e express?o de g?nero, n?vel de experi?ncia, educa??o,
+status socioecon?mico, nacionalidade, apar?ncia pessoal, ra?a, casta,
+cor, religi?o, ou identidade e orienta??o sexual.
 
 Comprometemo-nos a agir e interagir de formas que contribuam para uma
-comunidade aberta, acolhedora, diversa, inclusiva e saudável.
+comunidade aberta, acolhedora, diversa, inclusiva e saud?vel.
 
-## Nossos Padrões
+## Nossos Padr?es
 
 Exemplos de comportamentos que contribuem para um ambiente positivo:
 
 * Demonstrar empatia e bondade com outras pessoas
-* Respeitar opiniões, pontos de vista e experiências diferentes
+* Respeitar opini?es, pontos de vista e experi?ncias diferentes
 * Dar e aceitar de forma graciosa feedback construtivo
 * Aceitar responsabilidade e pedir desculpas a aqueles afetados por
-  nossos erros, e aprender com a experiência
-* Focar no que é melhor não somente para nós como indivíduos, mas
-  também para o conjunto da comunidade
+  nossos erros, e aprender com a experi?ncia
+* Focar no que ? melhor n?o somente para n?s como indiv?duos, mas
+  tamb?m para o conjunto da comunidade
 
-Exemplos de comportamentos inaceitáveis:
+Exemplos de comportamentos inaceit?veis:
 
-* Uso de linguagem ou imagens sexualizadas, e atenção ou avanços
+* Uso de linguagem ou imagens sexualizadas, e aten??o ou avan?os
   sexuais de qualquer tipo
-* Comentários insultuosos ou depreciativos *(trolling)*, e ataques
-  pessoais ou políticos
-* Assédio público ou privado
-* Publicar informação privada de outras pessoas, como endereço
-  eletrônico ou físico, sem permissão explícita
+* Coment?rios insultuosos ou depreciativos *(trolling)*, e ataques
+  pessoais ou pol?ticos
+* Ass?dio p?blico ou privado
+* Publicar informa??o privada de outras pessoas, como endere?o
+  eletr?nico ou f?sico, sem permiss?o expl?cita
 * Outras condutas que possam ser razoavelmente consideradas
   inapropriadas em um ambiente profissional
 
-## Responsabilidades de Aplicação
+## Responsabilidades de Aplica??o
 
-Os líderes da comunidade são responsáveis por clarificar e fazer
-cumprir nossos padrões de comportamento aceitável e tomarão ações
+Os l?deres da comunidade s?o respons?veis por clarificar e fazer
+cumprir nossos padr?es de comportamento aceit?vel e tomar?o a??es
 corretivas apropriadas e justas em resposta a qualquer comportamento
-que considerem inadequado, ameaçador, ofensivo ou prejudicial.
+que considerem inadequado, amea?ador, ofensivo ou prejudicial.
 
-Os líderes da comunidade têm o direito e a responsabilidade de
-remover, editar ou rejeitar comentários, *commits*, código,
-edições da wiki, *issues* e outras contribuições que não estejam
-alinhadas com este Código de Conduta, e comunicarão as razões para
-as decisões de moderação quando apropriado.
+Os l?deres da comunidade t?m o direito e a responsabilidade de
+remover, editar ou rejeitar coment?rios, *commits*, c?digo,
+edi??es da wiki, *issues* e outras contribui??es que n?o estejam
+alinhadas com este C?digo de Conduta, e comunicar?o as raz?es para
+as decis?es de modera??o quando apropriado.
 
 ## Escopo
 
-Este Código de Conduta se aplica a todos os espaços da comunidade, e
-também se aplica quando uma pessoa estiver representando oficialmente
-a comunidade em espaços públicos. Exemplos de representação da nossa
-comunidade incluem o uso de um endereço de e-mail oficial, postagens
-em contas oficiais de redes sociais, ou atuação como representante
+Este C?digo de Conduta se aplica a todos os espa?os da comunidade, e
+tamb?m se aplica quando uma pessoa estiver representando oficialmente
+a comunidade em espa?os p?blicos. Exemplos de representa??o da nossa
+comunidade incluem o uso de um endere?o de e-mail oficial, postagens
+em contas oficiais de redes sociais, ou atua??o como representante
 designado em um evento online ou offline.
 
-## Aplicação
+## Aplica??o
 
-Casos de comportamentos abusivos, de assédio ou inaceitáveis de
-outras formas podem ser reportados aos líderes da comunidade
-responsáveis pela aplicação em **kyriosdata@ufg.br**.
+Casos de comportamentos abusivos, de ass?dio ou inaceit?veis de
+outras formas podem ser reportados aos l?deres da comunidade
+respons?veis pela aplica??o em **kyriosdata@ufg.br**.
 
-Todas as queixas serão avaliadas e investigadas de forma rápida e
+Todas as queixas ser?o avaliadas e investigadas de forma r?pida e
 justa.
 
-Todos os líderes da comunidade são obrigados a respeitar a
-privacidade e a segurança de quem reporta qualquer incidente.
+Todos os l?deres da comunidade s?o obrigados a respeitar a
+privacidade e a seguran?a de quem reporta qualquer incidente.
 
-## Diretrizes de Aplicação
+## Diretrizes de Aplica??o
 
-Os líderes da comunidade seguirão estas Diretrizes de Impacto na
-Comunidade ao determinar as consequências para qualquer ação que
-considerem violadora deste Código de Conduta:
+Os l?deres da comunidade seguir?o estas Diretrizes de Impacto na
+Comunidade ao determinar as consequ?ncias para qualquer a??o que
+considerem violadora deste C?digo de Conduta:
 
-### 1. Correção
+### 1. Corre??o
 
 **Impacto na Comunidade**: Uso de linguagem inapropriada ou outro
 comportamento considerado pouco profissional ou indesejado na
 comunidade.
 
-**Consequência**: Aviso por escrito e privado dos líderes da
-comunidade, oferecendo clareza sobre a natureza da violação e uma
-explicação de porque o comportamento foi inadequado. Um pedido
-público de desculpas pode ser solicitado.
+**Consequ?ncia**: Aviso por escrito e privado dos l?deres da
+comunidade, oferecendo clareza sobre a natureza da viola??o e uma
+explica??o de porque o comportamento foi inadequado. Um pedido
+p?blico de desculpas pode ser solicitado.
 
-### 2. Advertência
+### 2. Advert?ncia
 
-**Impacto na Comunidade**: Uma violação por meio de um incidente
-único ou de uma série de ações.
+**Impacto na Comunidade**: Uma viola??o por meio de um incidente
+?nico ou de uma s?rie de a??es.
 
-**Consequência**: Uma advertência com consequências para o
-comportamento contínuo. Não pode haver interação com as pessoas
-envolvidas, incluindo interação não-solicitada com aqueles que
-impõem o Código de Conduta, por um período determinado de tempo.
-Isso inclui evitar interações em espaços da comunidade, bem como
-em canais externos como mídias sociais. A violação desses termos
-pode levar a um banimento temporário ou permanente.
+**Consequ?ncia**: Uma advert?ncia com consequ?ncias para o
+comportamento cont?nuo. N?o pode haver intera??o com as pessoas
+envolvidas, incluindo intera??o n?o-solicitada com aqueles que
+imp?em o C?digo de Conduta, por um per?odo determinado de tempo.
+Isso inclui evitar intera??es em espa?os da comunidade, bem como
+em canais externos como m?dias sociais. A viola??o desses termos
+pode levar a um banimento tempor?rio ou permanente.
 
-### 3. Banimento Temporário
+### 3. Banimento Tempor?rio
 
-**Impacto na Comunidade**: Uma séria violação dos padrões da
+**Impacto na Comunidade**: Uma s?ria viola??o dos padr?es da
 comunidade, incluindo comportamento inapropriado sustentado.
 
-**Consequência**: Um banimento temporário de qualquer tipo de
-interação ou comunicação pública com a comunidade por um período
-determinado de tempo. Nenhuma interação pública ou privada com as
-pessoas envolvidas, incluindo interação não-solicitada com aqueles
-que aplicam o Código de Conduta, é permitida durante esse período.
-A violação desses termos pode levar a um banimento permanente.
+**Consequ?ncia**: Um banimento tempor?rio de qualquer tipo de
+intera??o ou comunica??o p?blica com a comunidade por um per?odo
+determinado de tempo. Nenhuma intera??o p?blica ou privada com as
+pessoas envolvidas, incluindo intera??o n?o-solicitada com aqueles
+que aplicam o C?digo de Conduta, ? permitida durante esse per?odo.
+A viola??o desses termos pode levar a um banimento permanente.
 
 ### 4. Banimento Permanente
 
-**Impacto na Comunidade**: Demonstração de um padrão de violação
-dos padrões da comunidade, incluindo comportamento inadequado
-sustentado, assédio a uma pessoa, ou agressão ou menosprezo a
-classes de indivíduos.
+**Impacto na Comunidade**: Demonstra??o de um padr?o de viola??o
+dos padr?es da comunidade, incluindo comportamento inadequado
+sustentado, ass?dio a uma pessoa, ou agress?o ou menosprezo a
+classes de indiv?duos.
 
-**Consequência**: Um banimento permanente de qualquer tipo de
-interação pública dentro da comunidade.
+**Consequ?ncia**: Um banimento permanente de qualquer tipo de
+intera??o p?blica dentro da comunidade.
 
-## Atribuição
+## Atribui??o
 
-Este Código de Conduta é adaptado do
-[Contributor Covenant][homepage], versão 2.1, disponível em
+Este C?digo de Conduta ? adaptado do
+[Contributor Covenant][homepage], vers?o 2.1, dispon?vel em
 <https://www.contributor-covenant.org/version/2/1/code_of_conduct.html>.
 
 As Diretrizes de Impacto na Comunidade foram inspiradas na
-[escala de aplicação de código de conduta da Mozilla][Mozilla CoC].
+[escala de aplica??o de c?digo de conduta da Mozilla][Mozilla CoC].
 
-Para respostas a perguntas comuns sobre este código de conduta,
+Para respostas a perguntas comuns sobre este c?digo de conduta,
 veja a FAQ em
-<https://www.contributor-covenant.org/faq>. Traduções estão
-disponíveis em <https://www.contributor-covenant.org/translations>.
+<https://www.contributor-covenant.org/faq>. Tradu??es est?o
+dispon?veis em <https://www.contributor-covenant.org/translations>.
 
 [homepage]: https://www.contributor-covenant.org
 [Mozilla CoC]: https://github.com/mozilla/diversity
