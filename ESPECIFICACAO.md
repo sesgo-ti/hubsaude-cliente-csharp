@@ -626,31 +626,37 @@ APIs criptográficas divergem no formato de saída ECDSA:
 - O backoff (RF-07) DEVE usar espera não bloqueante quando o modelo
   da plataforma for assíncrono.
 
-## 10. Rastreabilidade — requisito → implementação de referência
+## 10. Rastreabilidade — requisito → implementação
 
-| Requisito | Java (`br.gov.go.saude.hubsaude.client`) |
-|-----------|------------------------------------------|
-| RF-01 | `SmartTokenClient.buildClientAssertion()` |
-| RF-02 | `SmartTokenClient.buildFormBody()`, `doObtainToken()`, `TraceContext` |
-| RF-03 | `SmartTokenClient.doObtainToken()`, `parseTokenResponse()` |
-| RF-04 | `SmartTokenClient.tokenCache`, `CachedToken.isValid()` |
-| RF-05 | `SmartTokenClient.scopeLockFor()` (32 stripes), `obtainTokenResponse()` |
-| RF-06 | `SmartTokenClient.invalidateCache()` (2 sobrecargas) |
-| RF-07 | `SmartTokenClient.obtainTokenResponse()` (laço de tentativas), `RetryPolicy` |
-| RF-08 | `SmartTokenClient.isLikelyClientCertificateRejection()` |
-| RF-09 | `SmartTokenClientBuilder.discoverTokenEndpoint()` |
-| RF-10 | `SslContextFactory.buildSslContext(...)` |
-| RF-11 | `SslContextFactory.buildKeyManagers(...)` |
-| RF-12 | `SigningStrategy`, `SigningStrategyFactory`, `PrivateKeySigningStrategy` |
-| RF-13 | `PemLoader.loadPrivateKey*` |
-| RF-14 | `SslContextFactory.validateCertificate(...)` |
-| RF-15 | `SmartTokenClient.verifyKeyPairConsistency()` |
-| RF-16 | `SigningStrategyFactory.jwtAlgorithmToJava()` |
-| RF-17 | `SmartTokenClient` (API pública), `TokenResponse` |
-| RF-18 | `SmartTokenClientBuilder.build()`, `FaultToleranceConfig` |
-| RF-19 | `SmartTokenException`, `SigningException` |
-| RNF-02 | `SmartTokenClient.sanitizeErrorResponse()` |
-| RNF-03 | `PemLoader.clearPassword()` |
+A coluna Java registra a implementação de referência. A coluna C# indica o
+que já existe em `HubSaude.Cliente` na série `0.1.x` (`—` = pendente;
+*parcial* = tipos ou constantes presentes, comportamento completo ainda
+pendente).
+
+| Requisito | Java (`br.gov.go.saude.hubsaude.client`) | C# (`HubSaude.Cliente`) |
+|-----------|------------------------------------------|-------------------------|
+| RF-01 | `SmartTokenClient.buildClientAssertion()` | — |
+| RF-02 | `SmartTokenClient.buildFormBody()`, `doObtainToken()`, `TraceContext` | `TraceContext` (parcial) |
+| RF-03 | `SmartTokenClient.doObtainToken()`, `parseTokenResponse()` | — |
+| RF-04 | `SmartTokenClient.tokenCache`, `CachedToken.isValid()` | defaults em `SmartTokenClient` (parcial) |
+| RF-05 | `SmartTokenClient.scopeLockFor()` (32 stripes), `obtainTokenResponse()` | — |
+| RF-06 | `SmartTokenClient.invalidateCache()` (2 sobrecargas) | — |
+| RF-07 | `SmartTokenClient.obtainTokenResponse()` (laço de tentativas), `RetryPolicy` | `RetryPolicy` (parcial) |
+| RF-08 | `SmartTokenClient.isLikelyClientCertificateRejection()` | — |
+| RF-09 | `SmartTokenClientBuilder.discoverTokenEndpoint()` | — |
+| RF-10 | `SslContextFactory.buildSslContext(...)` | `DefaultTlsProtocol` (parcial) |
+| RF-11 | `SslContextFactory.buildKeyManagers(...)` | — |
+| RF-12 | `SigningStrategy`, `SigningStrategyFactory`, `PrivateKeySigningStrategy` | `ISigningStrategy` (parcial) |
+| RF-13 | `PemLoader.loadPrivateKey*` | — |
+| RF-14 | `SslContextFactory.validateCertificate(...)` | — |
+| RF-15 | `SmartTokenClient.verifyKeyPairConsistency()` | — |
+| RF-16 | `SigningStrategyFactory.jwtAlgorithmToJava()` | `DefaultJwtAlgorithm` (parcial) |
+| RF-17 | `SmartTokenClient` (API pública), `TokenResponse` | `SmartTokenClient`, `SmartTokenClientBuilder` (parcial) |
+| RF-18 | `SmartTokenClientBuilder.build()`, `FaultToleranceConfig` | `FaultToleranceConfig`, `SmartTokenClientBuilder`, defaults (parcial) |
+| RF-19 | `SmartTokenException`, `SigningException` | `SmartTokenException`, `SigningException` |
+| RNF-02 | `SmartTokenClient.sanitizeErrorResponse()` | — |
+| RNF-03 | `PemLoader.clearPassword()` | — |
+| RNF-06 | JaCoCo (gate 85% no release) | Coverlet (gate 85% em `dotnet test`) |
 
 ## 11. Casos de teste mínimos de conformidade
 
