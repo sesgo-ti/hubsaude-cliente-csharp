@@ -4,7 +4,7 @@
 namespace HubSaude.Cliente.Tests.Fakes;
 
 /// <summary>
-/// Estrat?gia de teste: devolve uma assinatura vazia sem criptografia.
+/// Estratégia de teste: devolve uma assinatura vazia sem criptografia.
 /// </summary>
 internal sealed class FakeSigningStrategy : ISigningStrategy
 {
