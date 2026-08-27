@@ -9,7 +9,7 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>HubSaude.Cliente</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Authors>SES-GO; UFG/INF</Authors>
     <Company>SES-GO e UFG/INF — Fábrica de Software</Company>
     <Description>Cliente C#/.NET para obtenção de tokens de acesso ao HubSaúde via SMART Backend Services (SMART-on-FHIR).</Description>
@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   </ItemGroup>
 

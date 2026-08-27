@@ -17,7 +17,7 @@ public sealed class SmartTokenExceptionTests
     [Fact]
     public void deveCriarExcecaoComMensagemECausa()
     {
-        var causa = new FormatException("JSON inv?lido");
+        var causa = new FormatException("JSON inválido");
         var exception = new SmartTokenException("Falha de teste", causa);
 
         Assert.Equal("Falha de teste", exception.Message);
