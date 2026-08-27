@@ -1,6 +1,6 @@
 # hubsaude-cliente-csharp
 
-[![Version](https://img.shields.io/badge/Version-0.1.0-yellow)]()
+[![Version](https://img.shields.io/badge/Version-0.2.0-yellow)]()
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-blue)]()
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -120,7 +120,7 @@ homologação com CA interna ou desenvolvimento com certificados ad hoc.
 ## Resiliência em produção
 
 A especificação prevê cache de token e *retries* com *backoff*
-exponencial. Na série `0.1.x`, apenas `RetryPolicy`, `FaultToleranceConfig`
+exponencial. Na série `0.2.x`, apenas `RetryPolicy`, `FaultToleranceConfig`
 e os defaults normativos de `SmartTokenClient` estão implementados; cache,
 laço de retry HTTP e `ObtainTokenAsync` ainda estão pendentes. Para
 proteção adicional contra falhas prolongadas do AS, combine com um
