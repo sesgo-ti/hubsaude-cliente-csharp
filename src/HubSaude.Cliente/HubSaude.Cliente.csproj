@@ -9,23 +9,30 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>HubSaude.Cliente</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>SES-GO; UFG/INF</Authors>
     <Company>SES-GO e UFG/INF — Fábrica de Software</Company>
+    <Copyright>Copyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG)</Copyright>
     <Description>Cliente C#/.NET para obtenção de tokens de acesso ao HubSaúde via SMART Backend Services (SMART-on-FHIR).</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/sesgo-ti/hubsaude-cliente-csharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sesgo-ti/hubsaude-cliente-csharp.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageTags>HubSaude;SMART;FHIR;OAuth;Healthcare;SES-GO</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
+    <None Include="..\..\NOTICE" Pack="true" PackagePath="\" Link="NOTICE" />
   </ItemGroup>
 
   <ItemGroup>

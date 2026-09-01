@@ -1,0 +1,50 @@
+name: DCO
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: dco-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  signed-off-by:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verificar Signed-off-by em cada commit
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          failed=0
+          while read -r sha; do
+            [ -z "$sha" ] && continue
+            author=$(git log -1 --format='%an' "$sha")
+            email=$(git log -1 --format='%ae' "$sha")
+            case "$author $email" in
+              *dependabot*|*github-actions[bot]*)
+                echo "OK (bot isento) $sha $author"
+                continue
+                ;;
+            esac
+            body=$(git log -1 --format='%B' "$sha")
+            if ! printf '%s\n' "$body" | grep -qiE '^Signed-off-by: .+ <[^>]+>$'; then
+              echo "::error::Commit $sha ($author <$email>) sem Signed-off-by:"
+              failed=1
+            else
+              echo "OK $sha"
+            fi
+          done < <(git rev-list --no-merges "${BASE}..${HEAD}")
+          if [ "$failed" -ne 0 ]; then
+            echo "Use: git commit -s  (Developer Certificate of Origin)"
+            exit 1
+          fi
