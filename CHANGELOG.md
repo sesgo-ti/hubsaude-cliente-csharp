@@ -7,6 +7,38 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+### Adicionado
+
+- Testes de arquitetura (`ClientArchRules` / `HubSaudeArchitectureTests`),
+  equivalentes idiomáticos às fitness functions ArchUnit do cliente Java.
+- `NOTICE`, workflows de **release** (nupkg/snupkg + CycloneDX), **CodeQL**,
+  **Dependabot** e verificação **DCO** (`Signed-off-by`) em Pull Requests.
+
+### Alterado
+
+- Documentação alinhada ao README Java: configuração fluente, PEM via
+  OpenSSL, observabilidade, enterprise (métricas) e troubleshooting TLS
+  com `ServerTrustAnchor` / .NET 10.
+- Metadados NuGet: copyright, LICENSE/NOTICE no pacote, símbolos
+  `snupkg`, build determinístico em CI.
+- `ESPECIFICACAO.md`: status ativo e rastreio 0.3.x / referência Java 0.4.x.
+
+## [0.3.0] - 2026-09-01
+
+Fluxo completo de obtenção de token no .NET: HTTP, cache, retry, TLS/mTLS
+e descoberta SMART, alinhados à `ESPECIFICACAO.md` e ao cliente Java.
+
+### Adicionado
+
+- `ObtainTokenAsync` / `ObtainTokenResponseAsync`, `TokenResponse`,
+  invalidação de cache e `traceparent` em cada requisição HTTP.
+- Cache LRU por scope com single-flight (`SemaphoreSlim`, 32 stripes) e
+  retry com backoff exponencial assíncrono (somente falhas transitórias).
+- Tratamento HTTP 200/`expires_in`, 429 sem retry, sanitização de corpos
+  de erro e heurística de rejeição mTLS.
+- **PKCS#12** via `ClientPkcs12` (assinatura + mTLS) e
+  `FromPkcs12`/`FromPkcs12File`.
+
 ## [0.2.0] - 2026-08-27
 
 Primeira release com código da biblioteca. O fluxo completo de obtenção de
