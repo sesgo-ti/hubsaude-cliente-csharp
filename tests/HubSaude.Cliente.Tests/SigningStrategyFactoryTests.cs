@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG).
 
 using System.Security.Cryptography;
@@ -144,6 +144,25 @@ public sealed class SigningStrategyFactoryTests : IDisposable
         var strategy = SigningStrategyFactory.FromPkcs12(pfx, "test-alias", "senha123".ToCharArray());
         var dados = Encoding.UTF8.GetBytes("dados keystore");
         Assert.True(_rsa.VerifyData(dados, strategy.Sign(dados), HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1));
+    }
+
+    [Fact]
+    public void deveAssinarComPkcs12DeArquivo()
+    {
+        using var cert = CryptoFixtures.SelfSignedCert(_rsa, "test-alias");
+        var pfx = cert.Export(X509ContentType.Pfx, "senha123");
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".pfx");
+        File.WriteAllBytes(path, pfx);
+        try
+        {
+            var strategy = SigningStrategyFactory.FromPkcs12File(path, "test-alias", "senha123".ToCharArray());
+            var dados = Encoding.UTF8.GetBytes("dados arquivo");
+            Assert.True(_rsa.VerifyData(dados, strategy.Sign(dados), HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [Fact]
