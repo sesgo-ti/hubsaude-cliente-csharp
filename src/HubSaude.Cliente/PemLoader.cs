@@ -17,9 +17,18 @@ namespace HubSaude.Cliente;
 /// </summary>
 public static class PemLoader
 {
+    /// <summary>Tamanho mínimo do módulo RSA, em bits (NIST SP 800-57).</summary>
     public const int MinRsaKeyBits = 2048;
+
+    /// <summary>Tamanho mínimo do campo EC, em bits (curva P-256).</summary>
     public const int MinEcFieldBits = 256;
 
+    /// <summary>
+    /// Rejeita chaves abaixo do mínimo normativo (fail-fast, RF-12).
+    /// </summary>
+    /// <param name="key">Chave RSA ou ECDsa a validar.</param>
+    /// <param name="source">Identificador da origem (caminho ou rótulo) para mensagens de erro.</param>
+    /// <exception cref="ArgumentException">Chave abaixo do mínimo aceito.</exception>
     public static void ValidateMinimumKeySize(AsymmetricAlgorithm key, string source)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -52,11 +61,24 @@ public static class PemLoader
         }
     }
 
+    /// <summary>
+    /// Carrega chave privada PEM de arquivo sem senha.
+    /// </summary>
+    /// <param name="path">Caminho do arquivo PEM.</param>
+    /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="SmartTokenException">PEM inválido ou formato não suportado.</exception>
     public static AsymmetricAlgorithm LoadPrivateKey(string path)
     {
         return LoadPrivateKey(path, password: null);
     }
 
+    /// <summary>
+    /// Carrega chave privada PEM de arquivo, com senha opcional.
+    /// </summary>
+    /// <param name="path">Caminho do arquivo PEM.</param>
+    /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
+    /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
     public static AsymmetricAlgorithm LoadPrivateKey(string path, char[]? password)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -72,12 +94,28 @@ public static class PemLoader
         }
     }
 
+    /// <summary>
+    /// Carrega chave privada a partir de texto PEM em memória.
+    /// </summary>
+    /// <param name="pem">Conteúdo PEM da chave.</param>
+    /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
+    /// <param name="source">Identificador da origem para mensagens de erro.</param>
+    /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
     public static AsymmetricAlgorithm LoadPrivateKeyFromString(string pem, char[]? password, string source)
     {
         ArgumentNullException.ThrowIfNull(pem);
         return LoadPrivateKeyFromChars(pem.ToCharArray(), password, source);
     }
 
+    /// <summary>
+    /// Carrega chave privada a partir de caracteres PEM; o buffer é zerado ao retornar.
+    /// </summary>
+    /// <param name="pem">Caracteres PEM da chave.</param>
+    /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
+    /// <param name="source">Identificador da origem para mensagens de erro.</param>
+    /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
     public static AsymmetricAlgorithm LoadPrivateKeyFromChars(char[] pem, char[]? password, string source)
     {
         ArgumentNullException.ThrowIfNull(pem);
@@ -115,12 +153,25 @@ public static class PemLoader
         }
     }
 
+    /// <summary>
+    /// Carrega e valida certificado X.509 PEM de arquivo (RF-14).
+    /// </summary>
+    /// <param name="path">Caminho do arquivo PEM do certificado.</param>
+    /// <returns>Certificado validado quanto ao período de validade.</returns>
+    /// <exception cref="SmartTokenException">PEM inválido ou certificado fora da validade.</exception>
     public static X509Certificate2 LoadCertificate(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         return CertificateValidator.ValidateFromPemFile(path);
     }
 
+    /// <summary>
+    /// Carrega e valida certificado X.509 a partir de conteúdo PEM em memória (RF-14).
+    /// </summary>
+    /// <param name="pem">Texto PEM do certificado.</param>
+    /// <param name="source">Identificador da origem para mensagens de erro.</param>
+    /// <returns>Certificado validado quanto ao período de validade.</returns>
+    /// <exception cref="SmartTokenException">PEM inválido ou certificado fora da validade.</exception>
     public static X509Certificate2 LoadCertificateFromString(string pem, string source)
     {
         return CertificateValidator.ValidateFromPem(pem, source);

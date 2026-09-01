@@ -11,6 +11,7 @@ namespace HubSaude.Cliente;
 /// </summary>
 public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
 {
+    /// <summary>Algoritmo JCA padrão para chaves RSA (<c>SHA384withRSA</c> / RS384).</summary>
     public const string DefaultAlgorithm = "SHA384withRSA";
 
     private readonly RSA? _rsa;
@@ -19,16 +20,30 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
     private readonly HashAlgorithmName? _pssHash;
     private bool _disposed;
 
+    /// <summary>
+    /// Cria estratégia RSA com algoritmo padrão; a chave permanece sob controle do chamador.
+    /// </summary>
+    /// <param name="privateKey">Chave privada RSA.</param>
     public PrivateKeySigningStrategy(RSA privateKey)
         : this(privateKey, DefaultAlgorithm, ownsKey: false, pssHash: null)
     {
     }
 
+    /// <summary>
+    /// Cria estratégia RSA com algoritmo JCA explícito; a chave permanece sob controle do chamador.
+    /// </summary>
+    /// <param name="privateKey">Chave privada RSA.</param>
+    /// <param name="algorithm">Nome JCA (ex.: <c>SHA384withRSA</c>).</param>
     public PrivateKeySigningStrategy(RSA privateKey, string algorithm)
         : this(privateKey, algorithm, ownsKey: false, pssHash: null)
     {
     }
 
+    /// <summary>
+    /// Cria estratégia ECDSA com algoritmo JCA explícito; a chave permanece sob controle do chamador.
+    /// </summary>
+    /// <param name="privateKey">Chave privada ECDSA.</param>
+    /// <param name="algorithm">Nome JCA (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
     public PrivateKeySigningStrategy(ECDsa privateKey, string algorithm)
         : this(privateKey, algorithm, ownsKey: false)
     {
@@ -57,6 +72,7 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
         Algorithm = algorithm;
     }
 
+    /// <summary>Nome JCA configurado para assinatura.</summary>
     public string Algorithm { get; }
 
     internal HashAlgorithmName HashAlgorithm =>
@@ -65,6 +81,7 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
     internal RSASignaturePadding? RsaPadding =>
         _rsa is not null ? ResolveRsa(Algorithm, _pssHash).Padding : null;
 
+    /// <inheritdoc />
     public byte[] Sign(byte[] data)
     {
         ArgumentNullException.ThrowIfNull(data);
@@ -92,6 +109,9 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
         }
     }
 
+    /// <summary>
+    /// Libera a chave privada quando esta instância assumiu ownership (<c>ownsKey</c>).
+    /// </summary>
     public void Dispose()
     {
         if (_disposed)
