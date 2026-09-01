@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG).
 
 using System.Security.Cryptography;
@@ -62,6 +62,15 @@ public sealed class KeyCertificateConsistencyTests : IDisposable
         using var cert = CryptoFixtures.SelfSignedCert(_rsa);
         var strategy = new PrivateKeySigningStrategy(_otherRsa, "SHA384withRSA");
         Assert.Throws<SmartTokenException>(() => KeyCertificateConsistency.VerifyStrategy(strategy, cert));
+    }
+
+    [Fact]
+    public void deveRejeitarTipoDeChaveNaoSuportado()
+    {
+        using var dsa = DSA.Create(2048);
+        using var cert = CryptoFixtures.SelfSignedCert(_rsa);
+        var ex = Assert.Throws<SmartTokenException>(() => KeyCertificateConsistency.VerifyKeyPair(dsa, cert));
+        Assert.Contains("n\u00e3o suportado", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
