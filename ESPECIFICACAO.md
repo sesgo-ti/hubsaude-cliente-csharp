@@ -4,11 +4,14 @@
 > SDK cliente do HubSaúde para obtenção de tokens de acesso via
 > [SMART Backend Services](https://hl7.org/fhir/smart-app-launch/backend-services.html).
 > Os requisitos refletem o comportamento implementado pelo
-> `hubsaude-cliente-csharp`  
-> Em caso de divergência aparente
+> `hubsaude-cliente-java` (implementação de referência) e servem de base
+> normativa para as quatro implementações oficiais: Java,
+> TypeScript/Node.js, C#/.NET e Python. A coluna C# em §10 rastreia
+> `hubsaude-cliente-csharp`. Em caso de divergência aparente
 > entre este documento e o [README](README.md), este documento prevalece.
 
-- **Status:** inativo.
+- **Status:** ativo; coluna C# sincronizada com `hubsaude-cliente-csharp` 0.3.x
+  (referência Java 0.4.x).
 - **Público-alvo:** desenvolvedores de SDKs do HubSaúde e revisores.
 - **Identificadores:** `RF-xx` (funcionais) e `RNF-xx` (não funcionais)
   são locais a este documento; não confundir com os requisitos centrais
@@ -521,7 +524,7 @@ DEVE ter memória constante (RF-05.3).
    Testes ponta a ponta contra ambientes externos PODEM complementar o gate,
    mas NÃO DEVEM ser necessários para compilar e validar o projeto.
 2. Cobertura mínima de linha: **85%**, aplicada como *gate* no
-   release (referência Java: JaCoCo).
+   release (referência Java: JaCoCo; C#: Coverlet em `dotnet test`).
 3. Os casos mínimos de conformidade de [§11](#11-casos-de-teste-mínimos-de-conformidade)
    DEVEM estar cobertos.
 
@@ -629,34 +632,32 @@ APIs criptográficas divergem no formato de saída ECDSA:
 ## 10. Rastreabilidade — requisito → implementação
 
 A coluna Java registra a implementação de referência. A coluna C# indica o
-que já existe em `HubSaude.Cliente` na série `0.1.x` (`—` = pendente;
-*parcial* = tipos ou constantes presentes, comportamento completo ainda
-pendente).
+que existe em `HubSaude.Cliente` na série `0.3.x`.
 
 | Requisito | Java (`br.gov.go.saude.hubsaude.client`) | C# (`HubSaude.Cliente`) |
 |-----------|------------------------------------------|-------------------------|
-| RF-01 | `SmartTokenClient.buildClientAssertion()` | — |
-| RF-02 | `SmartTokenClient.buildFormBody()`, `doObtainToken()`, `TraceContext` | `TraceContext` (parcial) |
-| RF-03 | `SmartTokenClient.doObtainToken()`, `parseTokenResponse()` | — |
-| RF-04 | `SmartTokenClient.tokenCache`, `CachedToken.isValid()` | defaults em `SmartTokenClient` (parcial) |
-| RF-05 | `SmartTokenClient.scopeLockFor()` (32 stripes), `obtainTokenResponse()` | — |
-| RF-06 | `SmartTokenClient.invalidateCache()` (2 sobrecargas) | — |
-| RF-07 | `SmartTokenClient.obtainTokenResponse()` (laço de tentativas), `RetryPolicy` | `RetryPolicy` (parcial) |
-| RF-08 | `SmartTokenClient.isLikelyClientCertificateRejection()` | — |
-| RF-09 | `SmartTokenClientBuilder.discoverTokenEndpoint()` | — |
-| RF-10 | `SslContextFactory.buildSslContext(...)` | `DefaultTlsProtocol` (parcial) |
-| RF-11 | `SslContextFactory.buildKeyManagers(...)` | — |
-| RF-12 | `SigningStrategy`, `SigningStrategyFactory`, `PrivateKeySigningStrategy` | `ISigningStrategy` (parcial) |
-| RF-13 | `PemLoader.loadPrivateKey*` | — |
-| RF-14 | `SslContextFactory.validateCertificate(...)` | — |
-| RF-15 | `SmartTokenClient.verifyKeyPairConsistency()` | — |
-| RF-16 | `SigningStrategyFactory.jwtAlgorithmToJava()` | `DefaultJwtAlgorithm` (parcial) |
-| RF-17 | `SmartTokenClient` (API pública), `TokenResponse` | `SmartTokenClient`, `SmartTokenClientBuilder` (parcial) |
-| RF-18 | `SmartTokenClientBuilder.build()`, `FaultToleranceConfig` | `FaultToleranceConfig`, `SmartTokenClientBuilder`, defaults (parcial) |
+| RF-01 | `SmartTokenClient.buildClientAssertion()` | `SmartTokenClient.BuildClientAssertion()` |
+| RF-02 | `SmartTokenClient.buildFormBody()`, `doObtainToken()`, `TraceContext` | `BuildFormBody`, `ObtainTokenResponseAsync`, `TraceContext` |
+| RF-03 | `SmartTokenClient.doObtainToken()`, `parseTokenResponse()` | `ParseTokenResponse`, `TokenResponseGuard` |
+| RF-04 | `SmartTokenClient.tokenCache`, `CachedToken.isValid()` | `TokenCacheStrategy` |
+| RF-05 | `SmartTokenClient.scopeLockFor()` (32 stripes), `obtainTokenResponse()` | `TokenCacheStrategy.LockFor`, `ObtainTokenResponseAsync` |
+| RF-06 | `SmartTokenClient.invalidateCache()` (2 sobrecargas) | `InvalidateCache()` / `InvalidateCache(scope)` |
+| RF-07 | `SmartTokenClient.obtainTokenResponse()` (laço de tentativas), `RetryPolicy` | `FetchTokenWithRetryAsync`, `RetryPolicy` |
+| RF-08 | `SmartTokenClient.isLikelyClientCertificateRejection()` | `ErrorClassifier.IsLikelyClientCertificateRejection` |
+| RF-09 | `SmartTokenClientBuilder.discoverTokenEndpoint()` | `SmartConfigurationDiscovery`, `FhirBase` |
+| RF-10 | `SslContextFactory.buildSslContext(...)` | `SslOptionsFactory` |
+| RF-11 | `SslContextFactory.buildKeyManagers(...)` | `SslOptionsFactory` + `ClientCertificate` |
+| RF-12 | `SigningStrategy`, `SigningStrategyFactory`, `PrivateKeySigningStrategy` | `ISigningStrategy`, `SigningStrategyFactory` (PKCS#11 pendente) |
+| RF-13 | `PemLoader.loadPrivateKey*` | `PemLoader` |
+| RF-14 | `SslContextFactory.validateCertificate(...)` | `CertificateValidator` |
+| RF-15 | `SmartTokenClient.verifyKeyPairConsistency()` | `VerifyKeyPairConsistency`, `KeyCertificateConsistency` |
+| RF-16 | `SigningStrategyFactory.jwtAlgorithmToJava()` | `SigningStrategyFactory.JwtAlgorithmToJava` |
+| RF-17 | `SmartTokenClient` (API pública), `TokenResponse` | `ObtainTokenAsync`, `TokenResponse`, builder |
+| RF-18 | `SmartTokenClientBuilder.build()`, `FaultToleranceConfig` | `SmartTokenClientBuilder.Build` / `BuildAsync` |
 | RF-19 | `SmartTokenException`, `SigningException` | `SmartTokenException`, `SigningException` |
-| RNF-02 | `SmartTokenClient.sanitizeErrorResponse()` | — |
-| RNF-03 | `PemLoader.clearPassword()` | — |
-| RNF-06 | JaCoCo (gate 85% no release) | Coverlet (gate 85% em `dotnet test`) |
+| RNF-02 | `SmartTokenClient.sanitizeErrorResponse()` | `ErrorClassifier.SanitizeErrorResponse` |
+| RNF-03 | `PemLoader.clearPassword()` | `PemLoader.ClearPassword` |
+| RNF-06 | JaCoCo (gate 85% no release) + ArchUnit | Coverlet (gate 85% em `dotnet test`) + `HubSaudeArchitectureTests` |
 
 ## 11. Casos de teste mínimos de conformidade
 

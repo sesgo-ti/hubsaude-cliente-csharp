@@ -32,8 +32,12 @@ Signed-off-by: Seu Nome <seu@email.com>
 ```
 
 Esse trailer atesta que você tem direito de submeter o trabalho sob a
-licença do projeto, conforme o texto integral do DCO. Commits sem
-`Signed-off-by:` serão bloqueados pelo CI.
+licença do projeto, conforme o texto integral do DCO. O workflow
+[`.github/workflows/dco.yml`](.github/workflows/dco.yml) falha o check
+do Pull Request se algum commit (exceto Dependabot / `github-actions`)
+não tiver `Signed-off-by:`. Para impedir o merge mesmo com o check
+vermelho, o check DCO precisa ser obrigatório no ruleset da branch
+`develop` (ainda não está).
 
 ## Fluxo de contribuição
 
@@ -83,9 +87,23 @@ licença do projeto, conforme o texto integral do DCO. Commits sem
 * IDisposable: recursos que exigem liberação explícita devem seguir o padrão
   `IDisposable`/`IAsyncDisposable` apropriado.
 * Testes: testes automatizados devem ser independentes de serviços externos
-  sempre que possível.
+  sempre que possível. Cobertura Coverlet: mínimo de 85% de linha em Release.
+* **Sem `Console.WriteLine` no assembly de produção**: use `ILogger`
+  (`Microsoft.Extensions.Logging.Abstractions`).
+* **Testes de arquitetura** (`ClientArchRules` em
+  `tests/HubSaude.Cliente.Tests/ArchRules/`, aplicados por
+  `HubSaudeArchitectureTests`): API pública em allowlist, tipos públicos
+  fechados (`sealed`/`static`/`interface`/`record`), namespace único
+  `HubSaude.Cliente`, `InternalsVisibleTo` só para testes, sem referências
+  a ASP.NET/EF/Newtonsoft/Kafka e sem `System.Console`. Equivalente
+  idiomático às regras ArchUnit do cliente Java (não há pacote
+  `domain` neste SDK).
+* `ILogger` de produção deve ser campo de instância não público (não
+  `static`/`public`); o idioma Java `private static final Logger` não se
+  aplica ao `ILogger` do .NET.
 * Dependências: evitar dependências desnecessárias e manter os pacotes NuGet
-  atualizados conforme a política do projeto.
+  atualizados conforme a política do projeto. Terceiros permitidos na
+  biblioteca: BouncyCastle (PEM) e logging abstractions.
 
 ## Política de versionamento
 
