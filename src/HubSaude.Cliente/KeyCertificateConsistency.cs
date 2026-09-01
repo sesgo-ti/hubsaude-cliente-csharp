@@ -19,19 +19,21 @@ internal static class KeyCertificateConsistency
         ArgumentNullException.ThrowIfNull(privateKey);
         ArgumentNullException.ThrowIfNull(certificate);
 
+        var keyAlgorithm = GetKeyAlgorithm(privateKey);
+
         try
         {
-            switch (privateKey)
+            switch (keyAlgorithm)
             {
-                case RSA rsa:
-                    VerifyRsa(rsa, certificate, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                case "RSA":
+                    VerifyRsa((RSA)privateKey, certificate, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                     break;
-                case ECDsa ecdsa:
-                    VerifyEcdsa(ecdsa, certificate, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
+                case "EC":
+                    VerifyEcdsa((ECDsa)privateKey, certificate, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
                     break;
                 default:
                     throw new SmartTokenException(
-                        "Tipo de chave n\u00e3o suportado para valida\u00e7\u00e3o: " + privateKey.SignatureAlgorithm);
+                        "Tipo de chave n\u00e3o suportado para valida\u00e7\u00e3o: " + keyAlgorithm);
             }
         }
         catch (SmartTokenException)
@@ -95,6 +97,15 @@ internal static class KeyCertificateConsistency
                 "Falha ao verificar consist\u00eancia entre chave privada e certificado: " + ex.Message, ex);
         }
     }
+
+    private static string GetKeyAlgorithm(AsymmetricAlgorithm privateKey) =>
+        privateKey switch
+        {
+            RSA => "RSA",
+            ECDsa => "EC",
+            DSA => "DSA",
+            _ => privateKey.GetType().Name
+        };
 
     private static void VerifyRsa(
         RSA privateKey,
