@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            global.json
+      - name: Validar tag, testar e empacotar
+        run: |
+          set -euo pipefail
+          VERSION=${GITHUB_REF_NAME#v}
+          case "$VERSION" in
+            *-SNAPSHOT|*[!0-9.]*|.*|*.) exit 1 ;;
+          esac
+          dotnet test HubSaude.Cliente.sln --configuration Release
+          mkdir -p artifacts
+          dotnet pack src/HubSaude.Cliente/HubSaude.Cliente.csproj \
+            --configuration Release \
+            --output artifacts \
+            -p:Version="$VERSION" \
+            -p:PackageVersion="$VERSION" \
+            -p:ContinuousIntegrationBuild=true
+          dotnet tool install --global CycloneDX --version 6.2.0
+          dotnet-CycloneDX src/HubSaude.Cliente/HubSaude.Cliente.csproj \
+            -o artifacts \
+            -fn "HubSaude.Cliente-${VERSION}-cyclonedx.json" \
+            -F Json \
+            -ed \
+            -sv "$VERSION" \
+            -st Library
+      - name: Publicar GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            artifacts/*.nupkg \
+            artifacts/*.snupkg \
+            artifacts/*cyclonedx.json \
+            --generate-notes \
+            --verify-tag
