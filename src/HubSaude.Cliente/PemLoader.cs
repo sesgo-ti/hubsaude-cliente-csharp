@@ -177,6 +177,10 @@ public static class PemLoader
         return CertificateValidator.ValidateFromPem(pem, source);
     }
 
+    /// <summary>
+    /// Limpa array de senha da memória para minimizar exposição.
+    /// </summary>
+    /// <param name="password">Array de senha a ser limpo; pode ser <c>null</c>.</param>
     internal static void ClearPassword(char[]? password)
     {
         if (password is not null && password.Length > 0)

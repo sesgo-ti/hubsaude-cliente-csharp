@@ -6,6 +6,24 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace HubSaude.Cliente;
 
+/// <summary>
+/// Agrupa a configuração TLS/mTLS do <see cref="SmartTokenClientBuilder"/> e
+/// resolve o <see cref="HttpMessageHandler"/> efetivo a partir dela.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Colaborador interno do <see cref="SmartTokenClientBuilder"/>, extraído para
+/// reduzir o número de campos e a complexidade de <c>Build()</c>.
+/// Não faz parte da API pública da biblioteca: os valores são definidos
+/// exclusivamente pelos métodos fluentes do builder.
+/// </para>
+/// <para>
+/// A precedência na resolução reproduz o contrato documentado do builder:
+/// handler customizado &gt; trust anchor em memória &gt; certificado em memória
+/// (mTLS via PEM) &gt; TLS unidirecional com trust anchor em arquivo ou
+/// trust store do sistema.
+/// </para>
+/// </remarks>
 internal sealed class TlsSettings
 {
     private string? _certificatePem;
@@ -47,8 +65,13 @@ internal sealed class TlsSettings
 
     internal string TlsProtocol => _tlsProtocol;
 
+    /// <summary>Handler HTTP customizado; sobrepõe qualquer outra configuração TLS.</summary>
     internal HttpMessageHandler? CustomHandler => _customHandler;
 
+    /// <summary>
+    /// Carrega e valida o certificado do cliente, quando configurado.
+    /// </summary>
+    /// <returns>O certificado X.509 do cliente ou <c>null</c> quando não definido.</returns>
     internal X509Certificate2? LoadCertificate()
     {
         return _certificatePem is null
@@ -56,6 +79,10 @@ internal sealed class TlsSettings
             : CertificateValidator.ValidateFromPemFile(_certificatePem);
     }
 
+    /// <summary>
+    /// Resolve o <see cref="HttpMessageHandler"/> efetivo conforme a precedência documentada
+    /// na descrição da classe, habilitando mTLS quando o material do cliente está disponível.
+    /// </summary>
     internal HttpMessageHandler ResolveHandler(
         TimeSpan connectTimeout,
         AsymmetricAlgorithm? clientKey,
@@ -71,6 +98,10 @@ internal sealed class TlsSettings
         return SslOptionsFactory.CreateHandler(connectTimeout, _tlsProtocol, trustAnchor, mtlsCert);
     }
 
+    /// <summary>
+    /// Resolve o certificado de cliente para mTLS a partir das configurações explícitas ou
+    /// do par chave/certificado PEM.
+    /// </summary>
     internal X509Certificate2? ResolveClientCertificate(
         AsymmetricAlgorithm? clientKey,
         X509Certificate2? clientCert)

@@ -6,10 +6,43 @@ using System.Text.Json;
 namespace HubSaude.Cliente;
 
 /// <summary>
-/// Descoberta de <c>token_endpoint</c> via <c>/.well-known/smart-configuration</c> (RF-09).
+/// Descoberta do <c>token_endpoint</c> via <c>/.well-known/smart-configuration</c>
+/// (SMART on FHIR) e validação de URLs quanto ao uso obrigatório de https.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Colaborador interno do <see cref="SmartTokenClientBuilder"/>, extraído para reduzir a
+/// complexidade do builder. Não faz parte da API pública: consumidores usam
+/// <see cref="SmartTokenClientBuilder.DiscoverTokenEndpointAsync"/>.
+/// </para>
+/// </remarks>
 internal static class SmartConfigurationDiscovery
 {
+    /// <summary>
+    /// Descobre o <c>token_endpoint</c> consultando o <c>/.well-known/smart-configuration</c>
+    /// a partir de uma URL base FHIR.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// O valor retornado pelo servidor é validado: deve usar o esquema <c>https</c>
+    /// (exceção para <c>localhost</c>/<c>127.0.0.1</c>), evitando que um endpoint inseguro
+    /// seja adotado silenciosamente.
+    /// </para>
+    /// <para>
+    /// A requisição carrega um header <c>traceparent</c> (W3C Trace Context) gerado
+    /// localmente; em caso de falha, o trace-id integra a mensagem de erro para correlação
+    /// com a plataforma.
+    /// </para>
+    /// </remarks>
+    /// <param name="fhirBaseUrl">URL base do servidor FHIR.</param>
+    /// <param name="handler">Handler HTTP com configuração TLS/mTLS.</param>
+    /// <param name="requestTimeout">Timeout da requisição HTTP.</param>
+    /// <param name="disposeHandler">Se o handler deve ser descartado após o uso.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>A URL do <c>token_endpoint</c> resolvida dinamicamente.</returns>
+    /// <exception cref="SmartTokenException">
+    /// Em caso de falha HTTP, JSON inválido ou <c>token_endpoint</c> ausente/inválido.
+    /// </exception>
     internal static async Task<string> DiscoverTokenEndpointAsync(
         string fhirBaseUrl,
         HttpMessageHandler handler,
@@ -81,6 +114,12 @@ internal static class SmartConfigurationDiscovery
         }
     }
 
+    /// <summary>
+    /// Exige esquema <c>https</c> para URLs de produção; permite <c>http</c> apenas em localhost.
+    /// </summary>
+    /// <param name="url">URL a validar.</param>
+    /// <param name="campo">Nome do campo na mensagem de erro (ex.: <c>token_endpoint</c>).</param>
+    /// <exception cref="ArgumentException">Quando a URL é inválida ou não usa https fora de localhost.</exception>
     internal static void RequireHttps(string url, string campo)
     {
         ArgumentNullException.ThrowIfNull(url);

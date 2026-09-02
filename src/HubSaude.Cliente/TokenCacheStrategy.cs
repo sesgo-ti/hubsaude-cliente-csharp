@@ -7,10 +7,26 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace HubSaude.Cliente;
 
 /// <summary>
-/// Cache LRU de tokens por scope e striping de <see cref="SemaphoreSlim"/> para single-flight (RF-04, RF-05).
+/// Cache de tokens por scope com lock striping para single-flight de renovação:
+/// no máximo uma requisição HTTP em voo por scope e uma janela LRU limitada de tokens.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Colaborador interno do <see cref="SmartTokenClient"/>: concentra a política de cache
+/// (validade com margem de renovação, invalidação) e a seleção de locks por scope que
+/// antes inflavam a complexidade da classe principal. Não faz parte da API pública.
+/// </para>
+/// <para>
+/// Os scopes recebidos por esta classe devem estar <strong>normalizados</strong>
+/// (<c>trim</c>; <c>null</c> → string vazia) — responsabilidade do chamador.
+/// </para>
+/// </remarks>
 internal sealed class TokenCacheStrategy
 {
+    /// <summary>
+    /// Quantidade fixa de locks usados no striping. Limita a memória a O(1), independentemente
+    /// do número de scopes distintos.
+    /// </summary>
     internal const int ScopeLockStripes = 32;
 
     private readonly bool _enabled;
@@ -48,6 +64,9 @@ internal sealed class TokenCacheStrategy
         }
     }
 
+    /// <summary>
+    /// Retorna token cacheado para o scope, se ainda válido com a margem configurada.
+    /// </summary>
     internal SmartTokenClient.TokenResponse? CachedResponseIfValid(string normalizedScope)
     {
         if (!_enabled)
@@ -73,11 +92,17 @@ internal sealed class TokenCacheStrategy
         return null;
     }
 
+    /// <summary>
+    /// Obtém o lock (striping) para single-flight de renovação do scope informado.
+    /// </summary>
     internal SemaphoreSlim LockFor(string normalizedScope)
     {
         return _scopeLocks[StripeIndex(normalizedScope)];
     }
 
+    /// <summary>
+    /// Calcula o índice do stripe de lock para o scope normalizado.
+    /// </summary>
     internal static int StripeIndex(string normalizedScope)
     {
         unchecked

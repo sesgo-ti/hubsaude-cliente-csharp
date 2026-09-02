@@ -8,12 +8,31 @@ using System.Text;
 namespace HubSaude.Cliente;
 
 /// <summary>
-/// Consistência chave-certificado (RF-15) com desafio fixo igual ao Java.
+/// Validações fail-fast de consistência entre o material de assinatura (chave privada ou
+/// <see cref="ISigningStrategy"/>) e o certificado X.509 do cliente.
 /// </summary>
+/// <remarks>
+/// <para>
+/// A verificação realiza uma assinatura de teste e a confere com a chave pública extraída
+/// do certificado. Assim, erros de configuração (arquivos trocados, chave corrompida,
+/// certificado regenerado sem atualizar a chave) são detectados na inicialização, e não
+/// apenas quando o authorization server rejeitar o <c>client_assertion</c>.
+/// </para>
+/// </remarks>
 internal static class KeyCertificateConsistency
 {
+    /// <summary>Dados de desafio usados na assinatura de teste (idêntico ao cliente Java).</summary>
     internal static readonly byte[] Challenge = Encoding.UTF8.GetBytes("key-pair-consistency-check");
 
+    /// <summary>
+    /// Verifica que a chave privada corresponde à chave pública do certificado, assinando
+    /// um desafio e conferindo a assinatura.
+    /// </summary>
+    /// <param name="privateKey">Chave privada a validar.</param>
+    /// <param name="certificate">Certificado X.509 contendo a chave pública correspondente.</param>
+    /// <exception cref="SmartTokenException">
+    /// Se a assinatura de teste falhar, indicando que chave e certificado não formam um par válido.
+    /// </exception>
     internal static void VerifyKeyPair(AsymmetricAlgorithm privateKey, X509Certificate2 certificate)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
@@ -47,6 +66,26 @@ internal static class KeyCertificateConsistency
         }
     }
 
+    /// <summary>
+    /// Verifica que a estratégia de assinatura é consistente com o certificado do cliente.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A assinatura de teste é produzida pela própria estratégia (o que funciona inclusive
+    /// para HSM, pois a assinatura é delegada ao hardware) e verificada com a chave pública
+    /// do certificado, usando o mesmo algoritmo e parâmetros da estratégia.
+    /// </para>
+    /// <para>
+    /// <strong>Limitação:</strong> a verificação só é possível quando a estratégia é uma
+    /// <see cref="PrivateKeySigningStrategy"/>, pois é necessário conhecer o algoritmo para
+    /// verificar a assinatura. Estratégias customizadas são aceitas sem validação.
+    /// </para>
+    /// </remarks>
+    /// <param name="strategy">Estratégia de assinatura a validar.</param>
+    /// <param name="certificate">Certificado X.509 com a chave pública correspondente.</param>
+    /// <exception cref="SmartTokenException">
+    /// Se a assinatura de teste não puder ser verificada com a chave pública do certificado.
+    /// </exception>
     internal static void VerifyStrategy(ISigningStrategy strategy, X509Certificate2 certificate)
     {
         ArgumentNullException.ThrowIfNull(strategy);

@@ -13,10 +13,18 @@ using Microsoft.Extensions.Logging;
 namespace HubSaude.Cliente;
 
 /// <summary>
-/// Classifica falhas na obtenção de token: retry, heurística mTLS e erros HTTP (RF-03, RF-07, RF-08, RNF-02).
+/// Classifica falhas na obtenção de token: distingue falhas transitórias de rede (elegíveis a
+/// retry) de falhas definitivas, reconhece o padrão de rejeição do certificado de cliente no
+/// mTLS e materializa respostas HTTP de erro em <see cref="SmartTokenException"/> com corpo
+/// sanitizado.
 /// </summary>
+/// <remarks>
+/// Colaborador interno do <see cref="SmartTokenClient"/>: concentra a taxonomia de erros que
+/// antes inflava a complexidade da classe principal. Não faz parte da API pública.
+/// </remarks>
 internal sealed partial class ErrorClassifier
 {
+    /// <summary>Código HTTP: Rate Limit Exceeded.</summary>
     internal const int HttpTooManyRequests = 429;
     private const int MaxErrorResponseLength = 500;
 
@@ -34,6 +42,16 @@ internal sealed partial class ErrorClassifier
         _logger = logger;
     }
 
+    /// <summary>
+    /// Classifica a exceção de I/O: devolve-a quando representa falha transitória de rede
+    /// para que o chamador realize retry; caso contrário, propaga.
+    /// </summary>
+    /// <param name="ex">Exceção capturada na tentativa.</param>
+    /// <param name="trace">Contexto de trace W3C enviado na tentativa que falhou.</param>
+    /// <returns>A própria exceção, quando retriável.</returns>
+    /// <exception cref="SmartTokenException">
+    /// Quando a falha aparenta ser rejeição do certificado de cliente no mTLS.
+    /// </exception>
     internal Exception RetriableOrRethrow(Exception ex, TraceContext trace)
     {
         if (IsLikelyClientCertificateRejection(ex))
@@ -68,6 +86,9 @@ internal sealed partial class ErrorClassifier
         throw ex;
     }
 
+    /// <summary>
+    /// Indica se a exceção representa falha transitória de rede elegível a retry.
+    /// </summary>
     internal static bool IsTransientNetworkFailure(Exception ex)
     {
         for (Exception? t = ex; t is not null; t = t.InnerException)
@@ -108,6 +129,9 @@ internal sealed partial class ErrorClassifier
         return false;
     }
 
+    /// <summary>
+    /// Heurística para detectar rejeição do certificado de cliente após handshake mTLS.
+    /// </summary>
     internal static bool IsLikelyClientCertificateRejection(Exception? ex)
     {
         for (Exception? t = ex; t is not null; t = t.InnerException)
@@ -135,6 +159,9 @@ internal sealed partial class ErrorClassifier
         return false;
     }
 
+    /// <summary>
+    /// Materializa falha HTTP do token endpoint em <see cref="SmartTokenException"/> com corpo sanitizado.
+    /// </summary>
     internal SmartTokenException HttpFailure(
         HttpStatusCode statusCode,
         string? retryAfter,
@@ -170,6 +197,9 @@ internal sealed partial class ErrorClassifier
             + " \u2014 " + SanitizeErrorResponse(body) + hint);
     }
 
+    /// <summary>
+    /// Remove tokens sensíveis e trunca corpo de erro para logs e mensagens de exceção.
+    /// </summary>
     internal static string SanitizeErrorResponse(string? responseBody)
     {
         if (responseBody is null)
