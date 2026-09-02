@@ -17,10 +17,17 @@ namespace HubSaude.Cliente;
 /// Cliente SMART Backend Services para obtenção de access tokens.
 /// </summary>
 /// <remarks>
-/// Instância task-safe e reutilizável. Compõe uma
-/// <see cref="ISigningStrategy"/> (padrão Strategy) para a assinatura do
-/// <c>client_assertion</c>. Construção pública apenas via
+/// <para>
+/// Abstrai toda a complexidade de leitura de chave privada PEM, montagem do
+/// <c>client_assertion</c> JWT (assinado com RS384 por padrão) e comunicação HTTP com o
+/// token endpoint. Destinada a aplicações cliente que precisam se autenticar junto ao
+/// HubSaúde utilizando o fluxo SMART Backend Services.
+/// </para>
+/// <para>
+/// Instância task-safe e reutilizável. Compõe uma <see cref="ISigningStrategy"/> (padrão
+/// Strategy) para a assinatura do <c>client_assertion</c>. Construção pública apenas via
 /// <see cref="CreateBuilder"/>.
+/// </para>
 /// </remarks>
 public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
 {

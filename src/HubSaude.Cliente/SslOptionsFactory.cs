@@ -8,10 +8,24 @@ using System.Security.Cryptography.X509Certificates;
 namespace HubSaude.Cliente;
 
 /// <summary>
-/// Constrói opções TLS/mTLS para <see cref="SocketsHttpHandler"/> (RF-10, RF-11).
+/// Constrói opções TLS/mTLS para <see cref="SocketsHttpHandler"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Centraliza a lógica de configuração SSL/TLS e validação de certificados X.509,
+/// mantendo <see cref="SmartTokenClient"/> focado na lógica de aquisição de tokens.
+/// </para>
+/// <para>
+/// Modos de operação: trust store do sistema quando nenhum trust anchor é fornecido;
+/// trust anchor específico via certificado PEM do servidor para validação TLS customizada.
+/// </para>
+/// </remarks>
 internal static class SslOptionsFactory
 {
+    /// <summary>Converte o identificador de protocolo TLS em <see cref="SslProtocols"/>.</summary>
+    /// <param name="tlsProtocol">Protocolo TLS (ex.: TLSv1.3, Tls12, TLS).</param>
+    /// <returns>Protocolos SSL habilitados.</returns>
+    /// <exception cref="SmartTokenException">Quando o protocolo não é suportado.</exception>
     internal static SslProtocols ParseProtocol(string tlsProtocol)
     {
         ArgumentNullException.ThrowIfNull(tlsProtocol);
@@ -24,6 +38,9 @@ internal static class SslOptionsFactory
         };
     }
 
+    /// <summary>
+    /// Aplica protocolo TLS, trust anchor e certificado de cliente nas opções SSL.
+    /// </summary>
     internal static void Configure(
         SslClientAuthenticationOptions options,
         string tlsProtocol,
@@ -58,6 +75,9 @@ internal static class SslOptionsFactory
         }
     }
 
+    /// <summary>
+    /// Cria um <see cref="SocketsHttpHandler"/> com timeout de conexão e TLS/mTLS configurados.
+    /// </summary>
     internal static SocketsHttpHandler CreateHandler(
         TimeSpan connectTimeout,
         string tlsProtocol,
