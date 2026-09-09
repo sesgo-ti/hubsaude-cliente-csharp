@@ -9,8 +9,7 @@ namespace HubSaude.Cliente.Tests;
 
 /// <summary>
 /// Aplica as fitness functions de <see cref="ClientArchRules"/> sobre o
-/// assembly de produção, no mesmo espírito de <c>HubSaudeArchitectureTest</c>
-/// do cliente Java.
+/// assembly de produção.
 /// </summary>
 public sealed class HubSaudeArchitectureTests
 {

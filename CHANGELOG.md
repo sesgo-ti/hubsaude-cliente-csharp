@@ -9,24 +9,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ### Adicionado
 
-- Testes de arquitetura (`ClientArchRules` / `HubSaudeArchitectureTests`),
-  equivalentes idiomáticos às fitness functions ArchUnit do cliente Java.
+- Testes de arquitetura (`ClientArchRules` / `HubSaudeArchitectureTests`).
 - `NOTICE`, workflows de **release** (nupkg/snupkg + CycloneDX), **CodeQL**,
   **Dependabot** e verificação **DCO** (`Signed-off-by`) em Pull Requests.
 
 ### Alterado
 
-- Documentação alinhada ao README Java: configuração fluente, PEM via
-  OpenSSL, observabilidade, enterprise (métricas) e troubleshooting TLS
-  com `ServerTrustAnchor` / .NET 10.
+- Documentação própria deste SDK (.NET 10): README, `ESPECIFICACAO.md`,
+  contribuição, integração enterprise e troubleshooting TLS com
+  `ServerTrustAnchor`, sem tratar outro ecossistema como referência.
 - Metadados NuGet: copyright, LICENSE/NOTICE no pacote, símbolos
   `snupkg`, build determinístico em CI.
-- `ESPECIFICACAO.md`: status ativo e rastreio 0.3.x / referência Java 0.4.x.
+- `ESPECIFICACAO.md`: contrato comportamental de `HubSaude.Cliente`
+  0.3.x (API, rastreabilidade e casos de teste deste repositório).
 
 ## [0.3.0] - 2026-09-01
 
 Fluxo completo de obtenção de token no .NET: HTTP, cache, retry, TLS/mTLS
-e descoberta SMART, alinhados à `ESPECIFICACAO.md` e ao cliente Java.
+e descoberta SMART, alinhados à `ESPECIFICACAO.md`.
 
 ### Adicionado
 
@@ -57,7 +57,8 @@ criptográfico e resiliência parcial alinhados à `ESPECIFICACAO.md`.
 - **`TraceContext`**: geração de `traceparent` W3C por requisição (RF-02.4).
 - **`ISigningStrategy`**, **`PrivateKeySigningStrategy`** e
   **`SigningStrategyFactory`** (RF-12, RF-16): assinatura RSA/ECDSA com
-  mapeamento JWT→JCA, suporte a RS\*/PS\*/ES\* e parâmetros PSS (RFC 7518 §3.5).
+  mapeamento JWT→algoritmo de assinatura, suporte a RS\*/PS\*/ES\* e
+  parâmetros PSS (RFC 7518 §3.5).
 - **`PemLoader`** (RF-12/13): carregamento de chaves PEM (PKCS#8, PKCS#1 RSA,
   criptografadas PKCS#8 e OpenSSL tradicional via BouncyCastle), certificados
   X.509, validação fail-fast de tamanho mínimo (RSA ≥ 2048 bits, EC ≥ P-256)
@@ -65,7 +66,7 @@ criptográfico e resiliência parcial alinhados à `ESPECIFICACAO.md`.
 - **`CertificateValidator`** (RF-14): parse e validação de período de
   validade de certificados PEM.
 - **`KeyCertificateConsistency`** (RF-15): verificação de par chave/certificado
-  com desafio fixo compatível com a implementação Java.
+  com desafio fixo (`key-pair-consistency-check`).
 - **`SmartTokenException`** e **`SigningException`** (RF-19).
 - Suíte de testes xUnit com **128 casos** e gate **Coverlet** de 85% de line
   coverage (RNF-06).
@@ -101,5 +102,4 @@ incompatíveis; versões **PATCH** preservam compatibilidade.
 ## Links
 
 - [Repositório](https://github.com/sesgo-ti/hubsaude-cliente-csharp)
-- [Repositório Origem](https://github.com/sesgo-ti/hubsaude-cliente-java)
 - [Documentação SMART Backend Services](https://hl7.org/fhir/smart-app-launch/backend-services.html)

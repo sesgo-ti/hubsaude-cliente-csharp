@@ -11,7 +11,7 @@ namespace HubSaude.Cliente;
 /// </summary>
 public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
 {
-    /// <summary>Algoritmo JCA padrão para chaves RSA (<c>SHA384withRSA</c> / RS384).</summary>
+    /// <summary>Algoritmo de assinatura padrão para chaves RSA (<c>SHA384withRSA</c> / RS384).</summary>
     public const string DefaultAlgorithm = "SHA384withRSA";
 
     private readonly RSA? _rsa;
@@ -30,20 +30,20 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
     }
 
     /// <summary>
-    /// Cria estratégia RSA com algoritmo JCA explícito; a chave permanece sob controle do chamador.
+    /// Cria estratégia RSA com algoritmo de assinatura explícito; a chave permanece sob controle do chamador.
     /// </summary>
     /// <param name="privateKey">Chave privada RSA.</param>
-    /// <param name="algorithm">Nome JCA (ex.: <c>SHA384withRSA</c>).</param>
+    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withRSA</c>).</param>
     public PrivateKeySigningStrategy(RSA privateKey, string algorithm)
         : this(privateKey, algorithm, ownsKey: false, pssHash: null)
     {
     }
 
     /// <summary>
-    /// Cria estratégia ECDSA com algoritmo JCA explícito; a chave permanece sob controle do chamador.
+    /// Cria estratégia ECDSA com algoritmo de assinatura explícito; a chave permanece sob controle do chamador.
     /// </summary>
     /// <param name="privateKey">Chave privada ECDSA.</param>
-    /// <param name="algorithm">Nome JCA (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
+    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
     public PrivateKeySigningStrategy(ECDsa privateKey, string algorithm)
         : this(privateKey, algorithm, ownsKey: false)
     {
@@ -72,7 +72,7 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
         Algorithm = algorithm;
     }
 
-    /// <summary>Nome JCA configurado para assinatura.</summary>
+    /// <summary>Identificador do algoritmo de assinatura configurado.</summary>
     public string Algorithm { get; }
 
     internal HashAlgorithmName HashAlgorithm =>

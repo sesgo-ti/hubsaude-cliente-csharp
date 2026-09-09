@@ -9,10 +9,10 @@ Cliente C#/.NET para obtenção de tokens de acesso ao HubSaúde via
 (SMART-on-FHIR). Encapsula a montagem do JWT *client assertion*, sua
 assinatura e a troca pelo *access token* no endpoint OAuth 2.0.
 
-O contrato comportamental está em [`ESPECIFICACAO.md`](ESPECIFICACAO.md)
-— requisitos normativos que refletem esta implementação e servem de
-referência para o portfólio oficial de SDKs: Java, TypeScript/Node.js
-(consumível também por JavaScript), C#/.NET e Python.
+O contrato comportamental está em [`ESPECIFICACAO.md`](ESPECIFICACAO.md):
+requisitos funcionais e não funcionais desta biblioteca. Em caso de
+divergência aparente entre o README e a especificação, a especificação
+prevalece.
 
 ## Dependência NuGet
 
@@ -316,8 +316,7 @@ dotnet test HubSaude.Cliente.sln --configuration Release
 ```
 
 O projeto de testes aplica Coverlet (mínimo 85% de line coverage) e
-testes de arquitetura em `tests/HubSaude.Cliente.Tests/ArchRules/`
-(equivalentes às `ClientArchRules` do cliente Java).
+testes de arquitetura em `tests/HubSaude.Cliente.Tests/ArchRules/`.
 
 ## Publicação de nova versão (release)
 

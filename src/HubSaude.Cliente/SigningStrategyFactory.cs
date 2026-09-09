@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 namespace HubSaude.Cliente;
 
 /// <summary>
-/// Parâmetros PSS equivalentes ao PSSParameterSpec do Java (RFC 7518 §3.5).
+/// Parâmetros PSS usados em <c>PS256</c>/<c>PS384</c>/<c>PS512</c> (RFC 7518 §3.5).
 /// </summary>
 /// <param name="DigestAlgorithm">Nome do digest (ex.: <c>SHA-384</c>).</param>
 /// <param name="SaltLength">Comprimento do salt em bytes.</param>
@@ -33,10 +33,10 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
-    /// Cria estratégia a partir de chave RSA com algoritmo JCA explícito.
+    /// Cria estratégia a partir de chave RSA com algoritmo de assinatura explícito.
     /// </summary>
     /// <param name="privateKey">Chave privada RSA já carregada.</param>
-    /// <param name="algorithm">Nome JCA (ex.: <c>SHA384withRSA</c>, <c>RSASSA-PSS</c>).</param>
+    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withRSA</c>, <c>RSASSA-PSS</c>).</param>
     /// <returns>Estratégia que não assume ownership da chave.</returns>
     public static ISigningStrategy FromPrivateKey(RSA privateKey, string algorithm)
     {
@@ -46,10 +46,10 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
-    /// Cria estratégia a partir de chave ECDSA com algoritmo JCA explícito.
+    /// Cria estratégia a partir de chave ECDSA com algoritmo de assinatura explícito.
     /// </summary>
     /// <param name="privateKey">Chave privada ECDSA já carregada.</param>
-    /// <param name="algorithm">Nome JCA (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
+    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
     /// <returns>Estratégia que não assume ownership da chave.</returns>
     public static ISigningStrategy FromPrivateKey(ECDsa privateKey, string algorithm)
     {
@@ -195,10 +195,10 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
-    /// Converte algoritmo JWT <c>alg</c> para nome JCA usado na assinatura (RF-16).
+    /// Converte algoritmo JWT <c>alg</c> para o identificador usado na assinatura (RF-16).
     /// </summary>
     /// <param name="jwtAlgorithm">Algoritmo JWT (ex.: <c>RS384</c>, <c>ES384</c>).</param>
-    /// <returns>Nome JCA equivalente.</returns>
+    /// <returns>Identificador de algoritmo equivalente.</returns>
     /// <exception cref="SmartTokenException">Algoritmo não suportado.</exception>
     public static string JwtAlgorithmToJava(string jwtAlgorithm)
     {
@@ -236,7 +236,7 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
-    /// Cria estratégia a partir de chave já carregada, mapeando algoritmo JWT para JCA (RF-16).
+    /// Cria estratégia a partir de chave já carregada, mapeando o algoritmo JWT (RF-16).
     /// </summary>
     /// <param name="privateKey">Chave RSA ou ECDSA.</param>
     /// <param name="jwtAlgorithm">Algoritmo JWT desejado no header do assertion.</param>

@@ -95,12 +95,9 @@ vermelho, o check DCO precisa ser obrigatório no ruleset da branch
   `HubSaudeArchitectureTests`): API pública em allowlist, tipos públicos
   fechados (`sealed`/`static`/`interface`/`record`), namespace único
   `HubSaude.Cliente`, `InternalsVisibleTo` só para testes, sem referências
-  a ASP.NET/EF/Newtonsoft/Kafka e sem `System.Console`. Equivalente
-  idiomático às regras ArchUnit do cliente Java (não há pacote
-  `domain` neste SDK).
+  a ASP.NET/EF/Newtonsoft/Kafka e sem `System.Console`.
 * `ILogger` de produção deve ser campo de instância não público (não
-  `static`/`public`); o idioma Java `private static final Logger` não se
-  aplica ao `ILogger` do .NET.
+  `static`/`public`).
 * Dependências: evitar dependências desnecessárias e manter os pacotes NuGet
   atualizados conforme a política do projeto. Terceiros permitidos na
   biblioteca: BouncyCastle (PEM) e logging abstractions.

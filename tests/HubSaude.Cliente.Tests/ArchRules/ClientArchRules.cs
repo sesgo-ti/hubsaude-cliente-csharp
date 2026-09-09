@@ -9,8 +9,8 @@ using System.Runtime.CompilerServices;
 namespace HubSaude.Cliente.Tests.ArchRules;
 
 /// <summary>
-/// Fitness functions equivalentes às <c>ClientArchRules</c> do cliente Java
-/// (ADR-15 / ADR-70), sem dependência extra: reflexão + metadados do PE.
+/// Fitness functions de arquitetura do assembly de produção, sem
+/// dependência extra: reflexão + metadados do PE.
 /// </summary>
 internal static class ClientArchRules
 {
