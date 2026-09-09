@@ -21,7 +21,7 @@ namespace HubSaude.Cliente;
 /// </remarks>
 internal static class KeyCertificateConsistency
 {
-    /// <summary>Dados de desafio usados na assinatura de teste (idêntico ao cliente Java).</summary>
+    /// <summary>Dados de desafio usados na assinatura de teste (RF-15).</summary>
     internal static readonly byte[] Challenge = Encoding.UTF8.GetBytes("key-pair-consistency-check");
 
     /// <summary>

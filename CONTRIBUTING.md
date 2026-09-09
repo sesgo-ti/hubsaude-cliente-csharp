@@ -32,12 +32,16 @@ Signed-off-by: Seu Nome <seu@email.com>
 ```
 
 Esse trailer atesta que você tem direito de submeter o trabalho sob a
-licença do projeto, conforme o texto integral do DCO. O workflow
-[`.github/workflows/dco.yml`](.github/workflows/dco.yml) falha o check
-do Pull Request se algum commit (exceto Dependabot / `github-actions`)
-não tiver `Signed-off-by:`. Para impedir o merge mesmo com o check
-vermelho, o check DCO precisa ser obrigatório no ruleset da branch
-`develop` (ainda não está).
+licença do projeto, conforme o texto integral do DCO.
+
+O workflow [`.github/workflows/dco.yml`](.github/workflows/dco.yml)
+valida o trailer em cada commit do PR (Dependabot e `github-actions`
+ficam isentos). O ruleset da branch `develop` exige o check
+**`signed-off-by`** antes do merge.
+
+> **Não confundir:** `git commit -s` (DCO) **não** é assinatura GPG/SSH.
+> Este repositório **não** exige commits criptograficamente assinados;
+> alinhamos a política ao [`hubsaude-cliente-java`](https://github.com/sesgo-ti/hubsaude-cliente-java).
 
 ## Fluxo de contribuição
 
@@ -95,12 +99,9 @@ vermelho, o check DCO precisa ser obrigatório no ruleset da branch
   `HubSaudeArchitectureTests`): API pública em allowlist, tipos públicos
   fechados (`sealed`/`static`/`interface`/`record`), namespace único
   `HubSaude.Cliente`, `InternalsVisibleTo` só para testes, sem referências
-  a ASP.NET/EF/Newtonsoft/Kafka e sem `System.Console`. Equivalente
-  idiomático às regras ArchUnit do cliente Java (não há pacote
-  `domain` neste SDK).
+  a ASP.NET/EF/Newtonsoft/Kafka e sem `System.Console`.
 * `ILogger` de produção deve ser campo de instância não público (não
-  `static`/`public`); o idioma Java `private static final Logger` não se
-  aplica ao `ILogger` do .NET.
+  `static`/`public`).
 * Dependências: evitar dependências desnecessárias e manter os pacotes NuGet
   atualizados conforme a política do projeto. Terceiros permitidos na
   biblioteca: BouncyCastle (PEM) e logging abstractions.

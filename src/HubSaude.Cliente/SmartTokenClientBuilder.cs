@@ -89,7 +89,7 @@ public sealed class SmartTokenClientBuilder
     }
 
     /// <summary>
-    /// PKCS#12 do cliente: assinatura do JWT e mTLS com o mesmo certificado (equivalente a <c>clientKeyStore</c> no Java).
+    /// PKCS#12 do cliente: assinatura do JWT e mTLS com o mesmo certificado.
     /// Mutuamente exclusivo com PEM e <see cref="SigningStrategy"/>.
     /// </summary>
     public SmartTokenClientBuilder ClientPkcs12(string pkcs12Path, string alias, char[] password)

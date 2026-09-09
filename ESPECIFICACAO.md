@@ -1,18 +1,15 @@
-# Especificação de requisitos — Cliente HubSaúde (SDK)
+# Especificação de requisitos — HubSaude.Cliente (C#/.NET)
 
-> **Escopo deste documento.** Este é o **contrato comportamental** de um
-> SDK cliente do HubSaúde para obtenção de tokens de acesso via
+> **Escopo deste documento.** Este é o **contrato comportamental** do
+> SDK `hubsaude-cliente-csharp` (`HubSaude.Cliente`) para obtenção de
+> tokens de acesso via
 > [SMART Backend Services](https://hl7.org/fhir/smart-app-launch/backend-services.html).
-> Os requisitos refletem o comportamento implementado pelo
-> `hubsaude-cliente-java` (implementação de referência) e servem de base
-> normativa para as quatro implementações oficiais: Java,
-> TypeScript/Node.js, C#/.NET e Python. A coluna C# em §10 rastreia
-> `hubsaude-cliente-csharp`. Em caso de divergência aparente
-> entre este documento e o [README](README.md), este documento prevalece.
+> Os requisitos descrevem o comportamento desta biblioteca. Em caso de
+> divergência aparente entre este documento e o [README](README.md),
+> este documento prevalece.
 
-- **Status:** ativo; coluna C# sincronizada com `hubsaude-cliente-csharp` 0.3.x
-  (referência Java 0.4.x).
-- **Público-alvo:** desenvolvedores de SDKs do HubSaúde e revisores.
+- **Status:** ativo; sincronizado com `hubsaude-cliente-csharp` 0.3.x.
+- **Público-alvo:** integradores .NET e mantenedores deste repositório.
 - **Identificadores:** `RF-xx` (funcionais) e `RNF-xx` (não funcionais)
   são locais a este documento; não confundir com os requisitos centrais
   da plataforma HubSaúde.
@@ -21,7 +18,7 @@
 
 ### 1.1 Objetivo
 
-Um SDK cliente do HubSaúde encapsula, para o sistema integrador:
+Esta biblioteca encapsula, para o sistema integrador .NET:
 
 1. a montagem do JWT `client_assertion` (RFC 7523);
 2. sua assinatura digital com a chave privada do cliente;
@@ -31,8 +28,8 @@ Um SDK cliente do HubSaúde encapsula, para o sistema integrador:
 
 ### 1.2 Fora de escopo
 
-Ficam **fora** do escopo do SDK (delegados à camada de orquestração da
-aplicação integradora):
+Ficam **fora** do escopo desta biblioteca (delegados à camada de
+orquestração da aplicação integradora):
 
 - *Circuit breaker*, métricas e *tracing* (o SDK DEVE apenas expor
   pontos de integração, ex.: instância reutilizável e exceções
@@ -41,28 +38,13 @@ aplicação integradora):
   token; o uso em `Authorization: Bearer` é responsabilidade do
   integrador;
 - gestão do credenciamento (o `client_id` e o registro da chave pública
-  são obtidos previamente via Ganesha).
+  são obtidos previamente via Ganesha);
+- PKCS#11 embutido nesta série: a assinatura em HSM DEVE ser feita por
+  uma `ISigningStrategy` fornecida pelo integrador.
 
-### 1.3 Portfólio oficial de SDKs
-
-O portfólio planejado do HubSaúde é composto pelas quatro implementações
-abaixo.
-
-| Ecossistema | Projeto | Papel |
-|-------------|---------|-------|
-| Java | `hubsaude-cliente-java` | Implementação de referência |
-| TypeScript/Node.js | `hubsaude-cliente-js` | SDK servidor, consumível também por JavaScript |
-| C#/.NET | `hubsaude-cliente-csharp` | SDK para aplicações .NET |
-| Python | `hubsaude-cliente-python` | SDK para aplicações e automações Python |
-
-Todas as implementações DEVEM atender aos requisitos funcionais, não
-funcionais e casos de teste deste documento. A implementação Java é a
-referência de código, mas não prevalece sobre este contrato; cada SDK DEVE
-oferecer uma API idiomática conforme a [seção 9](#9-diretrizes-para-as-implementações-oficiais).
-
-O SDK TypeScript/Node.js DEVE executar somente em ambiente servidor.
 Aplicações em navegador ou dispositivos móveis NÃO DEVEM receber
 credenciais, certificados ou chaves privadas de SMART Backend Services.
+Este SDK destina-se a aplicações servidoras .NET.
 
 ## 2. Convenções
 
@@ -104,7 +86,7 @@ sequenceDiagram
     participant SDK as SDK Cliente
     participant AS as Authorization Server
 
-    App->>SDK: obtainToken(scope)
+    App->>SDK: ObtainTokenAsync(scope)
     alt token em cache e válido (com margem)
         SDK-->>App: access_token (cache)
     else cache vazio ou expirando
@@ -337,9 +319,9 @@ sequenceDiagram
 2. Quando o servidor não solicitar certificado, a conexão DEVE se
    comportar como TLS unidirecional (retrocompatível).
 3. O material de mTLS DEVE poder vir de: chave+certificado em memória
-   (carregados de PEM) ou *keystore* da plataforma
-   (ex.: PKCS#12/JKS/PKCS#11 em Java), permitindo que a chave nunca
-   saia de dispositivo criptográfico.
+   (carregados de PEM), PKCS#12 (`ClientPkcs12` / `X509Certificate2`)
+   ou certificado com chave não-exportável já disponível como
+   `X509Certificate2` (HSM via `ClientCertificate`).
 4. Na ausência de material de cliente, o SDK DEVE operar com TLS
    unidirecional, sem erro.
 
@@ -347,22 +329,23 @@ sequenceDiagram
 
 #### RF-12 — Fontes de chave (estratégia de assinatura)
 
-1. O SDK DEVE abstrair a assinatura em uma **estratégia** com um
-   único contrato: `sign(bytes) -> bytes` (assinatura crua, não
-   codificada), lançando erro específico de assinatura em falha
-   criptográfica.
+1. O SDK DEVE abstrair a assinatura em **`ISigningStrategy`**:
+   `Sign(byte[] data) -> byte[]` (assinatura crua, não
+   codificada), lançando `SigningException` em falha criptográfica.
 2. O SDK DEVE suportar as fontes:
    - chave privada já carregada em memória (ex.: obtida de cofre —
-     OpenBao/Vault, Secret Manager);
-   - arquivo PEM, com e sem senha;
+     OpenBao/Vault, Secret Manager) via `SigningStrategyFactory`;
+   - arquivo PEM, com e sem senha (`PrivateKeyPem` /
+     `PrivateKeyPassword`);
    - conteúdo PEM em string (ex.: variável de ambiente/secret);
-   - *keystore* PKCS#12/JKS (chave referenciada por alias e senha);
-   - HSM/token via PKCS#11 (a chave NÃO DEVE sair do hardware; a
-     assinatura é delegada ao dispositivo).
+   - PKCS#12 (`ClientPkcs12`, `FromPkcs12` / `FromPkcs12File`, chave
+     referenciada por alias e senha);
+   - HSM/token via `ISigningStrategy` própria (PKCS#11 nativo permanece
+     fora desta série; a chave NÃO DEVE sair do hardware).
 3. Chave não encontrada (alias inexistente) ou PIN/senha inválidos
    DEVEM resultar em erro explícito.
-4. A estratégia DEVE ser thread-safe (em Java, uma instância nova de
-   `Signature` por chamada; equivalente em outras plataformas).
+4. A estratégia DEVE ser task-safe: cada `Sign` usa as APIs
+   thread-safe de `RSA`/`ECDsa` do .NET.
 
 #### RF-13 — Formatos de chave PEM
 
@@ -415,34 +398,33 @@ sequenceDiagram
    compatibilidade entre estratégia e `alg` é responsabilidade do
    integrador e DEVE estar documentada.
 4. Para `ES*`, a assinatura JWS DEVE estar no formato bruto
-   `R || S` (RFC 7518 §3.4). Plataformas cuja API produz DER/ASN.1
-   DEVEM converter (ver [§9.3](#93-assinaturas-ecdsa-es-formato-jose)).
+   `R || S` (RFC 7518 §3.4). Esta implementação DEVE usar
+   `DSASignatureFormat.IeeeP1363FixedFieldConcatenation`
+   (ver [§9.3](#93-assinaturas-ecdsa-es-formato-jose)).
 
 ### 6.7 API pública
 
 #### RF-17 — Operações mínimas
 
-O SDK DEVE expor, com nomes idiomáticos da linguagem
-(ver [§9.1](#91-mapeamento-de-nomes)):
+O SDK DEVE expor a API abaixo (ver [§9.1](#91-api-pública)):
 
 | Operação | Comportamento |
 |----------|---------------|
-| `obtainToken(scope) -> string` | Token de acesso (cache + retry transparentes) |
-| `obtainTokenResponse(scope) -> TokenResponse` | Mesmo fluxo, retornando `{accessToken, expiresIn, rawJson?}` |
-| `invalidateCache()` | Limpa todo o cache |
-| `invalidateCache(scope)` | Limpa o cache do scope |
-| `getTokenEndpoint() -> string` | Endpoint efetivo (inclusive descoberto) |
-| `getJwtAlgorithm() -> string` | Algoritmo `alg` configurado |
-| `builder()` / construção fluente | Configuração legível e validada |
-| `close()` / `dispose()` | Libera recursos internos e invalida o cache; operação idempotente |
+| `ObtainTokenAsync(scope)` | Token de acesso (cache + retry transparentes) |
+| `ObtainTokenResponseAsync(scope)` | Mesmo fluxo, retornando `TokenResponse` |
+| `InvalidateCache()` | Limpa todo o cache |
+| `InvalidateCache(scope)` | Limpa o cache do scope |
+| `TokenEndpoint` | Endpoint efetivo (inclusive descoberto) |
+| `JwtAlgorithm` | Algoritmo `alg` configurado |
+| `SmartTokenClient.CreateBuilder()` | Configuração fluente e validada |
+| `Dispose` / `DisposeAsync` | Libera recursos internos e invalida o cache; operação idempotente |
 
-`obtainToken` DEVE delegar a `obtainTokenResponse` (mesma semântica
-de cache, single-flight e resiliência).
+`ObtainTokenAsync` DEVE delegar a `ObtainTokenResponseAsync` (mesma
+semântica de cache, single-flight e resiliência).
 
-Quando a plataforma possuir recursos explícitos de I/O, a operação de
-fechamento DEVE seguir o idioma da linguagem (`AutoCloseable` no Java,
-`IDisposable` no .NET ou equivalente). Após o fechamento, novas
-operações de token DEVEM falhar explicitamente.
+`SmartTokenClient` DEVE implementar `IDisposable` e `IAsyncDisposable`.
+Após o fechamento, novas operações de token DEVEM falhar com
+`ObjectDisposedException`.
 
 #### RF-18 — Validações de configuração
 
@@ -473,18 +455,18 @@ assinatura é fornecida diretamente (sem certificado não há mTLS).
 2. Erros DEVEM preservar a causa original (exceção encadeada) e
    conter mensagens em pt-BR acionáveis (o que falhou; causa
    provável; próxima ação), sem expor segredos.
-3. Erros de I/O de rede PODEM ser expostos como os erros nativos da
-   plataforma (em Java, `IOException`).
+3. Erros de I/O de rede PODEM ser expostos como os tipos nativos do
+   .NET (`HttpRequestException`, `IOException`).
 
 ## 7. Requisitos não funcionais
 
 #### RNF-01 — Thread-safety e ciclo de vida
 
-A instância do cliente DEVE ser thread-safe (ou *task-safe* no modelo
-assíncrono da plataforma) e reutilizável pelo ciclo de vida da
-aplicação; a documentação DEVE recomendar instância única e fechamento
-explícito no encerramento. O fechamento DEVE ser idempotente, aguardar
-operações em voo e invalidar o cache antes de liberar os recursos.
+A instância do cliente DEVE ser task-safe e reutilizável pelo ciclo de
+vida da aplicação; a documentação DEVE recomendar instância única e
+fechamento explícito no encerramento. O fechamento DEVE ser
+idempotente, aguardar operações em voo e invalidar o cache antes de
+liberar os recursos.
 
 #### RNF-02 — Sanitização de logs e mensagens de erro
 
@@ -494,23 +476,22 @@ operações em voo e invalidar o cache antes de liberar os recursos.
    valores de `access_token`/`token` (em JSON e em
    `form-urlencoded`) substituídos por `[REDACTED]` e o corpo
    limitado a 500 caracteres.
-3. Logs DEVEM usar a infraestrutura padrão da plataforma (em Java,
-   SLF4J; sem `print`), em níveis: `debug` (cache, construção),
-   `info` (token obtido, cache invalidado), `warn` (retries, 429),
-   `error` (falhas definitivas).
+3. Logs DEVEM usar `Microsoft.Extensions.Logging.Abstractions`
+   (`ILogger`; sem `Console.WriteLine`), em níveis: `Debug` (cache,
+   construção), `Information` (token obtido, cache invalidado),
+   `Warning` (retries, 429), `Error` (falhas definitivas).
 
 #### RNF-03 — Higiene de segredos em memória
 
-Senhas e PINs DEVEM ser recebidos em estruturas mutáveis da
-plataforma (em Java, `char[]`) e limpos (zerados) após o uso, quando
-a plataforma permitir.
+Senhas e PINs DEVEM ser recebidos em `char[]` e limpos (zerados) após
+o uso.
 
 #### RNF-04 — Dependências mínimas
 
-O SDK DEVERIA usar primordialmente a biblioteca padrão da plataforma
+O SDK DEVERIA usar primordialmente a biblioteca padrão do .NET
 (HTTP, JSON, criptografia), admitindo dependências pontuais apenas
-para lacunas reais (em Java: BouncyCastle para parsing PEM; Jackson
-para JSON). NÃO DEVE depender de frameworks de aplicação.
+para lacunas reais (BouncyCastle para parsing PEM). NÃO DEVE depender
+de frameworks de aplicação (ASP.NET, EF, Polly).
 
 #### RNF-05 — Desempenho
 
@@ -524,22 +505,21 @@ DEVE ter memória constante (RF-05.3).
    Testes ponta a ponta contra ambientes externos PODEM complementar o gate,
    mas NÃO DEVEM ser necessários para compilar e validar o projeto.
 2. Cobertura mínima de linha: **85%**, aplicada como *gate* no
-   release (referência Java: JaCoCo; C#: Coverlet em `dotnet test`).
+   `dotnet test` (Coverlet, configuração Release).
 3. Os casos mínimos de conformidade de [§11](#11-casos-de-teste-mínimos-de-conformidade)
    DEVEM estar cobertos.
 
 #### RNF-07 — Documentação
 
-API pública documentada no formato da plataforma (Javadoc, docstring,
-JSDoc/TSDoc, XML doc comments), em pt-BR, incluindo exemplos de uso
-por fonte de chave e a recomendação de circuit breaker externo.
+API pública documentada com XML documentation comments, em pt-BR,
+incluindo exemplos de uso por fonte de chave e a recomendação de
+circuit breaker externo.
 
 #### RNF-08 — Licença, versionamento e release
 
 Apache 2.0; SemVer; publicação disparada por tag
-(padrão do monorepo: `cliente-<linguagem>-vMAJOR.MINOR.PATCH`,
-ADR-33/ADR-36); artefato acompanhado de SBOM quando o ecossistema
-suportar (referência Java: CycloneDX).
+`vMAJOR.MINOR.PATCH`; artefato acompanhado de SBOM CycloneDX na
+GitHub Release (`nupkg` / `snupkg`).
 
 ## 8. Parâmetros de configuração
 
@@ -552,7 +532,8 @@ suportar (referência Java: CycloneDX).
 | `privateKeyPassword` | não | — | Senha do PEM criptografado |
 | `signingStrategy` | sim² | — | Estratégia pronta (HSM, cofre etc.) |
 | `certificatePem` | não³ | — | Certificado do cliente (PEM) |
-| `clientKeyStore` (+alias, senha) | não | — | mTLS via keystore (PKCS#11/12, JKS) |
+| `clientPkcs12` (+alias, senha) | não | — | Assinatura + mTLS via PKCS#12 |
+| `clientCertificate` | não | — | `X509Certificate2` já carregado (mTLS) |
 | `serverTrustAnchor` | não | trust store da plataforma | PEM ou objeto X.509 |
 | `tlsProtocol` | não | `TLSv1.3` | Ex.: `TLSv1.2` |
 | `jwtAlgorithm` | não | `RS384` | Ver RF-16 |
@@ -571,97 +552,81 @@ suportar (referência Java: CycloneDX).
 ³ Obrigatório apenas para mTLS via chave em memória e para a
 verificação RF-15.
 
-## 9. Diretrizes para as implementações oficiais
+## 9. Diretrizes da implementação C#/.NET
 
-Esta seção é **informativa**: registra decisões idiomáticas
-recomendadas para manter paridade comportamental.
+Esta seção é **informativa**: registra decisões idiomáticas desta
+biblioteca.
 
-### 9.1 Mapeamento de nomes
+### 9.1 API pública
 
-| Conceito | Java (referência) | Python | TypeScript/Node.js | C#/.NET |
-|----------|-------------------|--------|--------------------|---------|
-| Cliente | `SmartTokenClient` | `SmartTokenClient` | `SmartTokenClient` | `SmartTokenClient` |
-| Obtenção | `obtainToken(scope)` | `obtain_token(scope)` | `obtainToken(scope)` (async) | `ObtainTokenAsync(scope)` |
-| Resposta completa | `obtainTokenResponse` | `obtain_token_response` | `obtainTokenResponse` | `ObtainTokenResponseAsync` |
-| Construção | `builder()` fluente | kwargs no construtor | objeto de opções | *options object* / builder |
-| Estratégia | `SigningStrategy` (interface funcional) | `Callable[[bytes], bytes]` ou protocolo | `(data: Uint8Array) => Uint8Array \| Promise<...>` | `Func<byte[], byte[]>` ou interface |
-| Erros | `SmartTokenException`, `SigningException` | `SmartTokenError`, `SigningError` | `SmartTokenError`, `SigningError` | `SmartTokenException`, `SigningException` |
+| Conceito | Tipo / membro |
+|----------|----------------|
+| Cliente | `SmartTokenClient` |
+| Obtenção | `ObtainTokenAsync(scope)` |
+| Resposta completa | `ObtainTokenResponseAsync` → `TokenResponse` |
+| Construção | `SmartTokenClient.CreateBuilder()` (`SmartTokenClientBuilder`) |
+| Estratégia | `ISigningStrategy` / `SigningStrategyFactory` |
+| Erros | `SmartTokenException`, `SigningException` |
 
-Na implementação Java, `SmartTokenClient` não expõe construtores
-públicos. O builder é a única entrada suportada para construção e
-centraliza validações, defaults e resolução dos materiais criptográficos.
+`SmartTokenClient` não expõe construtores públicos. O builder é a
+única entrada suportada: validações, defaults e resolução dos
+materiais criptográficos.
 
-### 9.2 Criptografia e HTTP por plataforma
+### 9.2 Criptografia e HTTP
 
-| Capacidade | Python | TypeScript/Node.js | C#/.NET |
-|------------|--------|--------------------|---------|
-| Assinatura RSA/ECDSA | `cryptography` (hazmat) | `node:crypto` (`crypto.sign`) | `System.Security.Cryptography` (`RSA`, `ECDsa`) |
-| PEM (com senha) | `load_pem_private_key(..., password=...)` | `crypto.createPrivateKey({ key, passphrase })` | `ImportFromEncryptedPem` / `PemEncoding` |
-| PKCS#12 | `serialization.pkcs12` | conversão prévia via OpenSSL ou lib dedicada | `X509Certificate2(Load)` |
-| PKCS#11 (HSM) | `python-pkcs11` | `pkcs11js` | `Pkcs11Interop` |
-| HTTP + TLS custom | `httpx`/`ssl.SSLContext` | `undici`/`https.Agent` | `HttpClient` + `SocketsHttpHandler.SslOptions` |
-| mTLS | `SSLContext.load_cert_chain` | `key`/`cert` no agent | `SslOptions.ClientCertificates` |
+| Capacidade | Implementação neste SDK |
+|------------|-------------------------|
+| Assinatura RSA/ECDSA | `System.Security.Cryptography` (`RSA`, `ECDsa`) |
+| PEM (com senha) | `PemLoader` (BouncyCastle para formatos criptografados) |
+| PKCS#12 | `ClientPkcs12`, `X509CertificateLoader` / `FromPkcs12File` |
+| PKCS#11 (HSM) | Fora desta série; `ISigningStrategy` do integrador |
+| HTTP + TLS custom | `HttpClient` + `SocketsHttpHandler.SslOptions` |
+| mTLS | `SslOptions.ClientCertificates` |
 
 ### 9.3 Assinaturas ECDSA (`ES*`): formato JOSE
 
-APIs criptográficas divergem no formato de saída ECDSA:
-
-- **.NET**: usar `DSASignatureFormat.IeeeP1363FixedFieldConcatenation`
-  (já produz `R||S`);
-- **Node**: usar `dsaEncoding: 'ieee-p1363'` em `crypto.sign`;
-- **Python** (`cryptography`): a saída é DER — converter com
-  `decode_dss_signature` e concatenar `R||S` com tamanho fixo;
-- **Java**: `SHA256withECDSA` produz DER; a implementação de
-  referência usa as variantes `...inP1363Format` do JDK, que já
-  produzem `R||S` (RF-16.4).
+Para `ES*`, a assinatura JWS DEVE ser `R||S` (RFC 7518 §3.4). Este SDK
+usa `DSASignatureFormat.IeeeP1363FixedFieldConcatenation`.
 
 ### 9.4 Concorrência e modelo assíncrono
 
-- O comportamento de RF-04/RF-05 (cache + single-flight +
-  double-check) é normativo; o mecanismo é idiomático:
-  - **Python**: `threading.Lock`/`asyncio.Lock` por stripe;
-  - **Node**: *event loop* único — deduplicar com
-    `Map<scope, Promise>` (a promessa em voo é o single-flight);
-  - **C#**: `SemaphoreSlim` por stripe, `async/await`
-    (`ConfigureAwait(false)` em biblioteca).
-- Linguagens de I/O assíncrono DEVERIAM expor a API como assíncrona
-  (`async`/`await`), mantendo a semântica dos requisitos.
-- O backoff (RF-07) DEVE usar espera não bloqueante quando o modelo
-  da plataforma for assíncrono.
+O comportamento de RF-04/RF-05 (cache + single-flight + double-check)
+é normativo. O mecanismo é `SemaphoreSlim` por stripe, `async`/`await`
+e `ConfigureAwait(false)` na biblioteca. O backoff (RF-07) usa espera
+não bloqueante (`Task.Delay`).
 
 ## 10. Rastreabilidade — requisito → implementação
 
-A coluna Java registra a implementação de referência. A coluna C# indica o
-que existe em `HubSaude.Cliente` na série `0.3.x`.
+Mapeamento para `HubSaude.Cliente` na série `0.3.x`.
 
-| Requisito | Java (`br.gov.go.saude.hubsaude.client`) | C# (`HubSaude.Cliente`) |
-|-----------|------------------------------------------|-------------------------|
-| RF-01 | `SmartTokenClient.buildClientAssertion()` | `SmartTokenClient.BuildClientAssertion()` |
-| RF-02 | `SmartTokenClient.buildFormBody()`, `doObtainToken()`, `TraceContext` | `BuildFormBody`, `ObtainTokenResponseAsync`, `TraceContext` |
-| RF-03 | `SmartTokenClient.doObtainToken()`, `parseTokenResponse()` | `ParseTokenResponse`, `TokenResponseGuard` |
-| RF-04 | `SmartTokenClient.tokenCache`, `CachedToken.isValid()` | `TokenCacheStrategy` |
-| RF-05 | `SmartTokenClient.scopeLockFor()` (32 stripes), `obtainTokenResponse()` | `TokenCacheStrategy.LockFor`, `ObtainTokenResponseAsync` |
-| RF-06 | `SmartTokenClient.invalidateCache()` (2 sobrecargas) | `InvalidateCache()` / `InvalidateCache(scope)` |
-| RF-07 | `SmartTokenClient.obtainTokenResponse()` (laço de tentativas), `RetryPolicy` | `FetchTokenWithRetryAsync`, `RetryPolicy` |
-| RF-08 | `SmartTokenClient.isLikelyClientCertificateRejection()` | `ErrorClassifier.IsLikelyClientCertificateRejection` |
-| RF-09 | `SmartTokenClientBuilder.discoverTokenEndpoint()` | `SmartConfigurationDiscovery`, `FhirBase` |
-| RF-10 | `SslContextFactory.buildSslContext(...)` | `SslOptionsFactory` |
-| RF-11 | `SslContextFactory.buildKeyManagers(...)` | `SslOptionsFactory` + `ClientCertificate` |
-| RF-12 | `SigningStrategy`, `SigningStrategyFactory`, `PrivateKeySigningStrategy` | `ISigningStrategy`, `SigningStrategyFactory` (PKCS#11 pendente) |
-| RF-13 | `PemLoader.loadPrivateKey*` | `PemLoader` |
-| RF-14 | `SslContextFactory.validateCertificate(...)` | `CertificateValidator` |
-| RF-15 | `SmartTokenClient.verifyKeyPairConsistency()` | `VerifyKeyPairConsistency`, `KeyCertificateConsistency` |
-| RF-16 | `SigningStrategyFactory.jwtAlgorithmToJava()` | `SigningStrategyFactory.JwtAlgorithmToJava` |
-| RF-17 | `SmartTokenClient` (API pública), `TokenResponse` | `ObtainTokenAsync`, `TokenResponse`, builder |
-| RF-18 | `SmartTokenClientBuilder.build()`, `FaultToleranceConfig` | `SmartTokenClientBuilder.Build` / `BuildAsync` |
-| RF-19 | `SmartTokenException`, `SigningException` | `SmartTokenException`, `SigningException` |
-| RNF-02 | `SmartTokenClient.sanitizeErrorResponse()` | `ErrorClassifier.SanitizeErrorResponse` |
-| RNF-03 | `PemLoader.clearPassword()` | `PemLoader.ClearPassword` |
-| RNF-06 | JaCoCo (gate 85% no release) + ArchUnit | Coverlet (gate 85% em `dotnet test`) + `HubSaudeArchitectureTests` |
+| Requisito | Implementação |
+|-----------|----------------|
+| RF-01 | `SmartTokenClient.BuildClientAssertion()` |
+| RF-02 | `BuildFormBody`, `ObtainTokenResponseAsync`, `TraceContext` |
+| RF-03 | `ParseTokenResponse`, `TokenResponseGuard` |
+| RF-04 | `TokenCacheStrategy` |
+| RF-05 | `TokenCacheStrategy.LockFor`, `ObtainTokenResponseAsync` |
+| RF-06 | `InvalidateCache()` / `InvalidateCache(scope)` |
+| RF-07 | `FetchTokenWithRetryAsync`, `RetryPolicy` |
+| RF-08 | `ErrorClassifier.IsLikelyClientCertificateRejection` |
+| RF-09 | `SmartConfigurationDiscovery`, `FhirBase` |
+| RF-10 | `SslOptionsFactory` |
+| RF-11 | `SslOptionsFactory` + `ClientCertificate` |
+| RF-12 | `ISigningStrategy`, `SigningStrategyFactory` (PKCS#11 via estratégia própria) |
+| RF-13 | `PemLoader` |
+| RF-14 | `CertificateValidator` |
+| RF-15 | `VerifyKeyPairConsistency`, `KeyCertificateConsistency` |
+| RF-16 | `SigningStrategyFactory.JwtAlgorithmToJava` |
+| RF-17 | `ObtainTokenAsync`, `TokenResponse`, `SmartTokenClientBuilder` |
+| RF-18 | `SmartTokenClientBuilder.Build` / `BuildAsync` |
+| RF-19 | `SmartTokenException`, `SigningException` |
+| RNF-02 | `ErrorClassifier.SanitizeErrorResponse` |
+| RNF-03 | `PemLoader.ClearPassword` |
+| RNF-06 | Coverlet (gate 85% em `dotnet test`) + `HubSaudeArchitectureTests` |
 
 ## 11. Casos de teste mínimos de conformidade
 
-Uma implementação DEVE cobrir, no mínimo:
+Esta biblioteca DEVE cobrir, no mínimo:
 
 1. **JWT**: estrutura em 3 partes Base64URL sem padding; claims
    `iss=sub=client_id`, `aud=endpoint`, `exp−iat=TTL`, `jti` único

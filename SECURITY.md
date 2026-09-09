@@ -31,7 +31,7 @@ Vantagens:
 
 Caso não use o GitHub, envie para:
 
-**kyriosdata@ufg.br**
+**<e-mail de contato de segurança a definir>**
 
 Inclua, sempre que possível:
 - Descrição do problema e impacto estimado
