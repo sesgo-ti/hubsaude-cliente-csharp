@@ -32,12 +32,16 @@ Signed-off-by: Seu Nome <seu@email.com>
 ```
 
 Esse trailer atesta que você tem direito de submeter o trabalho sob a
-licença do projeto, conforme o texto integral do DCO. O workflow
-[`.github/workflows/dco.yml`](.github/workflows/dco.yml) falha o check
-do Pull Request se algum commit (exceto Dependabot / `github-actions`)
-não tiver `Signed-off-by:`. Para impedir o merge mesmo com o check
-vermelho, o check DCO precisa ser obrigatório no ruleset da branch
-`develop` (ainda não está).
+licença do projeto, conforme o texto integral do DCO.
+
+O workflow [`.github/workflows/dco.yml`](.github/workflows/dco.yml)
+valida o trailer em cada commit do PR (Dependabot e `github-actions`
+ficam isentos). O ruleset da branch `develop` exige o check
+**`signed-off-by`** antes do merge.
+
+> **Não confundir:** `git commit -s` (DCO) **não** é assinatura GPG/SSH.
+> Este repositório **não** exige commits criptograficamente assinados;
+> alinhamos a política ao [`hubsaude-cliente-java`](https://github.com/sesgo-ti/hubsaude-cliente-java).
 
 ## Fluxo de contribuição
 

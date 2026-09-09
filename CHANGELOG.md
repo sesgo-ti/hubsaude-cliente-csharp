@@ -18,6 +18,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Documentação própria deste SDK (.NET 10): README, `ESPECIFICACAO.md`,
   contribuição, integração enterprise e troubleshooting TLS com
   `ServerTrustAnchor`, sem tratar outro ecossistema como referência.
+- Ruleset `develop`: DCO (`signed-off-by`) e CI (`verify`) obrigatórios;
+  removida exigência incorreta de assinatura GPG/SSH (`required_signatures`).
 - Metadados NuGet: copyright, LICENSE/NOTICE no pacote, símbolos
   `snupkg`, build determinístico em CI.
 - `ESPECIFICACAO.md`: contrato comportamental de `HubSaude.Cliente`
