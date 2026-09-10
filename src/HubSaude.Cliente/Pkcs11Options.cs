@@ -7,6 +7,11 @@ namespace HubSaude.Cliente;
 /// Opções de acesso a um HSM/token PKCS#11 para
 /// <see cref="SigningStrategyFactory.FromPkcs11"/>.
 /// </summary>
+/// <remarks>
+/// Pelo menos um entre <see cref="KeyLabel"/> e <see cref="KeyId"/> é
+/// obrigatório. <see cref="Slot"/> e <see cref="TokenLabel"/> são mutuamente
+/// exclusivos. A validação ocorre em <see cref="SigningStrategyFactory.FromPkcs11"/>.
+/// </remarks>
 public sealed class Pkcs11Options
 {
     /// <summary>

@@ -28,6 +28,9 @@ public static class PemLoader
     /// </summary>
     /// <param name="key">Chave RSA ou ECDsa a validar.</param>
     /// <param name="source">Identificador da origem (caminho ou rótulo) para mensagens de erro.</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="key"/> ou <paramref name="source"/> é nulo.
+    /// </exception>
     /// <exception cref="ArgumentException">Chave abaixo do mínimo aceito.</exception>
     public static void ValidateMinimumKeySize(AsymmetricAlgorithm key, string source)
     {
@@ -66,7 +69,9 @@ public static class PemLoader
     /// </summary>
     /// <param name="path">Caminho do arquivo PEM.</param>
     /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> é nulo.</exception>
     /// <exception cref="SmartTokenException">PEM inválido ou formato não suportado.</exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static AsymmetricAlgorithm LoadPrivateKey(string path)
     {
         return LoadPrivateKey(path, password: null);
@@ -78,7 +83,9 @@ public static class PemLoader
     /// <param name="path">Caminho do arquivo PEM.</param>
     /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
     /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> é nulo.</exception>
     /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static AsymmetricAlgorithm LoadPrivateKey(string path, char[]? password)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -101,6 +108,7 @@ public static class PemLoader
     /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
     /// <param name="source">Identificador da origem para mensagens de erro.</param>
     /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="pem"/> é nulo.</exception>
     /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
     public static AsymmetricAlgorithm LoadPrivateKeyFromString(string pem, char[]? password, string source)
     {
@@ -115,6 +123,9 @@ public static class PemLoader
     /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
     /// <param name="source">Identificador da origem para mensagens de erro.</param>
     /// <returns>Instância <see cref="RSA"/> ou <see cref="ECDsa"/> com a chave.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="pem"/> ou <paramref name="source"/> é nulo.
+    /// </exception>
     /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
     public static AsymmetricAlgorithm LoadPrivateKeyFromChars(char[] pem, char[]? password, string source)
     {
@@ -158,7 +169,9 @@ public static class PemLoader
     /// </summary>
     /// <param name="path">Caminho do arquivo PEM do certificado.</param>
     /// <returns>Certificado validado quanto ao período de validade.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> é nulo.</exception>
     /// <exception cref="SmartTokenException">PEM inválido ou certificado fora da validade.</exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static X509Certificate2 LoadCertificate(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -171,6 +184,9 @@ public static class PemLoader
     /// <param name="pem">Texto PEM do certificado.</param>
     /// <param name="source">Identificador da origem para mensagens de erro.</param>
     /// <returns>Certificado validado quanto ao período de validade.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="pem"/> ou <paramref name="source"/> é nulo.
+    /// </exception>
     /// <exception cref="SmartTokenException">PEM inválido ou certificado fora da validade.</exception>
     public static X509Certificate2 LoadCertificateFromString(string pem, string source)
     {
@@ -217,7 +233,7 @@ public static class PemLoader
             rsa.Dispose();
             if (ex is ArgumentException && Contains(pem, "-----BEGIN CERTIFICATE-----"))
             {
-                throw new SmartTokenException("Formato de chave n\u00e3o suportado (PemObject): " + source, ex);
+                throw new SmartTokenException("Formato de chave n\u00e3o suportado: " + source, ex);
             }
         }
 
@@ -230,7 +246,7 @@ public static class PemLoader
         catch (Exception ex) when (ex is CryptographicException or ArgumentException)
         {
             ecdsa.Dispose();
-            throw new SmartTokenException("Formato de chave n\u00e3o suportado (PemObject): " + source, ex);
+            throw new SmartTokenException("Formato de chave n\u00e3o suportado: " + source, ex);
         }
     }
 
@@ -284,8 +300,7 @@ public static class PemLoader
             {
                 AsymmetricCipherKeyPair pair => pair.Private,
                 AsymmetricKeyParameter param => param,
-                _ => throw new SmartTokenException(
-                    "Formato de chave n\u00e3o suportado (" + obj.GetType().Name + "): " + source),
+                _ => throw new SmartTokenException("Formato de chave n\u00e3o suportado: " + source),
             };
 
             return ConvertBcKey(privateKey, source);
@@ -318,8 +333,7 @@ public static class PemLoader
             return ecdsa;
         }
 
-        throw new SmartTokenException(
-            "Formato de chave n\u00e3o suportado (" + privateKey.GetType().Name + "): " + source);
+        throw new SmartTokenException("Formato de chave n\u00e3o suportado: " + source);
     }
 
     private sealed class PasswordFinder : IPasswordFinder

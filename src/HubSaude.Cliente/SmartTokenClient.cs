@@ -105,7 +105,7 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
         TokenEndpoint = tokenEndpoint;
         ClientId = clientId;
         JwtAlgorithm = jwtAlgorithm ?? DefaultJwtAlgorithm;
-        SigningStrategyFactory.JwtAlgorithmToJava(JwtAlgorithm);
+        SigningStrategyFactory.NormalizeJwtAlgorithm(JwtAlgorithm);
         KeyId = string.IsNullOrWhiteSpace(keyId) ? null : keyId;
         if (hubCtxIg is not null || hubCtxVersao is not null)
         {
@@ -174,6 +174,7 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Inicia a construção fluente do cliente. Única entrada pública suportada.
     /// </summary>
+    /// <returns>Novo builder sem configuração.</returns>
     public static SmartTokenClientBuilder CreateBuilder()
     {
         return new SmartTokenClientBuilder();
@@ -182,6 +183,13 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Obtém um access token para os scopes informados (RF-17).
     /// </summary>
+    /// <param name="scope">Scope OAuth 2.0; nulo ou vazio omite o parâmetro.</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação.</param>
+    /// <returns>Valor de <c>access_token</c>.</returns>
+    /// <exception cref="ObjectDisposedException">O cliente já foi encerrado.</exception>
+    /// <exception cref="SmartTokenException">Resposta inválida ou falha de configuração.</exception>
+    /// <exception cref="SigningException">Falha ao assinar o <c>client_assertion</c>.</exception>
+    /// <exception cref="OperationCanceledException">A operação foi cancelada ou expirou.</exception>
     public async Task<string> ObtainTokenAsync(string? scope, CancellationToken cancellationToken = default)
     {
         var response = await ObtainTokenResponseAsync(scope, cancellationToken).ConfigureAwait(false);
@@ -199,6 +207,7 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Invalida o cache do scope informado (RF-06).
     /// </summary>
+    /// <param name="scope">Scope cuja entrada deve ser removida; nulo invalida o scope vazio.</param>
     public void InvalidateCache(string? scope)
     {
         _tokenCache.Invalidate(NormalizeScope(scope));
@@ -289,6 +298,13 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Monta o corpo <c>application/x-www-form-urlencoded</c> do token endpoint (RF-02).
     /// </summary>
+    /// <param name="clientId">Identificador do cliente.</param>
+    /// <param name="assertion">JWT <c>client_assertion</c> compacto.</param>
+    /// <param name="scope">Scope OAuth 2.0; nulo ou vazio omite o parâmetro.</param>
+    /// <returns>Corpo percent-encoded.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="clientId"/> ou <paramref name="assertion"/> é nulo.
+    /// </exception>
     public static string BuildFormBody(string clientId, string assertion, string? scope)
     {
         ArgumentNullException.ThrowIfNull(clientId);
@@ -310,6 +326,9 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Percent-encoding UTF-8 no estilo <c>application/x-www-form-urlencoded</c> (espaço como <c>+</c>).
     /// </summary>
+    /// <param name="value">Valor a codificar.</param>
+    /// <returns>Valor percent-encoded.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> é nulo.</exception>
     public static string Encode(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -319,6 +338,10 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Extrai o <c>access_token</c> de uma resposta JSON do token endpoint.
     /// </summary>
+    /// <param name="jsonBody">Corpo JSON da resposta HTTP 200.</param>
+    /// <returns>Valor de <c>access_token</c>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="jsonBody"/> é nulo.</exception>
+    /// <exception cref="SmartTokenException">JSON inválido ou sem <c>access_token</c>.</exception>
     public static string ExtractAccessToken(string jsonBody)
     {
         return ParseTokenResponse(jsonBody).AccessToken;
@@ -327,6 +350,12 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Verifica se chave privada e certificado formam um par (RF-15).
     /// </summary>
+    /// <param name="privateKey">Chave privada RSA ou ECDSA.</param>
+    /// <param name="certificate">Certificado cuja chave pública deve coincidir.</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="privateKey"/> ou <paramref name="certificate"/> é nulo.
+    /// </exception>
+    /// <exception cref="SmartTokenException">O par chave/certificado é inconsistente.</exception>
     public static void VerifyKeyPairConsistency(AsymmetricAlgorithm privateKey, X509Certificate2 certificate)
     {
         KeyCertificateConsistency.VerifyKeyPair(privateKey, certificate);

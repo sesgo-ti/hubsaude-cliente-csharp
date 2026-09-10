@@ -128,11 +128,11 @@ internal sealed class SigningSettings
         }
 
         var clientKey = PemLoader.LoadPrivateKey(_privateKeyPem!, _privateKeyPassword);
-        var jca = SigningStrategyFactory.JwtAlgorithmToJava(_jwtAlgorithm);
-        var pss = SigningStrategyFactory.PssParameterSpecFor(_jwtAlgorithm);
+        var jwt = SigningStrategyFactory.NormalizeJwtAlgorithm(_jwtAlgorithm);
+        var pss = SigningStrategyFactory.PssParametersFor(jwt);
         var pssHash = pss is null ? (HashAlgorithmName?)null : SigningStrategyFactory.HashFromDigest(pss.DigestAlgorithm);
         return new Resolved(
-            SigningStrategyFactory.WrapOwned(clientKey, jca, pssHash),
+            SigningStrategyFactory.WrapOwned(clientKey, jwt, pssHash),
             clientKey,
             ClientCertificate: null);
     }
