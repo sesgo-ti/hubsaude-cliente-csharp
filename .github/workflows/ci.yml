@@ -27,6 +27,16 @@ jobs:
             **/*.csproj
             global.json
 
+      # PKCS#11 contra SoftHSM2 (HSM em software). O caminho do módulo
+      # varia por distribuição — descobrir e exportar SOFTHSM_LIB.
+      - name: Instalar SoftHSM2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y softhsm2
+          lib="$(dpkg -L libsofthsm2 | grep -m1 'libsofthsm2\.so$')"
+          test -n "$lib" || { echo "libsofthsm2.so não encontrado" >&2; exit 1; }
+          echo "SOFTHSM_LIB=$lib" >> "$GITHUB_ENV"
+
       - name: Verificar build e qualidade
         run: dotnet test HubSaude.Cliente.sln --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
 

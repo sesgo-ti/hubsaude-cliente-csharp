@@ -19,6 +19,13 @@ jobs:
           cache-dependency-path: |
             **/*.csproj
             global.json
+      - name: Instalar SoftHSM2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y softhsm2
+          lib="$(dpkg -L libsofthsm2 | grep -m1 'libsofthsm2\.so$')"
+          test -n "$lib" || { echo "libsofthsm2.so não encontrado" >&2; exit 1; }
+          echo "SOFTHSM_LIB=$lib" >> "$GITHUB_ENV"
       - name: Validar tag, testar e empacotar
         run: |
           set -euo pipefail

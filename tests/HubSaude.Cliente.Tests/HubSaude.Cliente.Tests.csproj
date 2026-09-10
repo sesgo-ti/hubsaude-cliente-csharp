@@ -14,6 +14,9 @@
     <Threshold>85</Threshold>
     <ThresholdType>line</ThresholdType>
     <ThresholdStat>total</ThresholdStat>
+    <!-- Sessão PKCS#11 exige módulo nativo (SoftHSM2 no CI). O comportamento
+         continua coberto por Pkcs11SigningStrategyTests e Pkcs11SoftHsmTests. -->
+    <ExcludeByFile>**/Pkcs11SigningStrategy.cs</ExcludeByFile>
     <NoWarn>$(NoWarn);CA1707</NoWarn>
   </PropertyGroup>
 
