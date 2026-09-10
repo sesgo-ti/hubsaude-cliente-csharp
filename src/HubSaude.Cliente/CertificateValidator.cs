@@ -14,6 +14,11 @@ public static class CertificateValidator
     /// <summary>
     /// Carrega e valida um certificado PEM de arquivo.
     /// </summary>
+    /// <param name="path">Caminho do arquivo PEM do certificado.</param>
+    /// <returns>Certificado validado quanto ao período de validade.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> é nulo.</exception>
+    /// <exception cref="SmartTokenException">PEM inválido ou certificado fora da validade.</exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static X509Certificate2 ValidateFromPemFile(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -24,6 +29,13 @@ public static class CertificateValidator
     /// <summary>
     /// Carrega e valida um certificado a partir de conteúdo PEM.
     /// </summary>
+    /// <param name="pem">Texto PEM do certificado.</param>
+    /// <param name="source">Identificador da origem para mensagens de erro.</param>
+    /// <returns>Certificado validado quanto ao período de validade.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="pem"/> ou <paramref name="source"/> é nulo.
+    /// </exception>
+    /// <exception cref="SmartTokenException">PEM inválido ou certificado fora da validade.</exception>
     public static X509Certificate2 ValidateFromPem(string pem, string source)
     {
         ArgumentNullException.ThrowIfNull(pem);
@@ -47,6 +59,12 @@ public static class CertificateValidator
     /// <summary>
     /// Verifica notBefore/notAfter do certificado (fail-fast).
     /// </summary>
+    /// <param name="certificate">Certificado a verificar.</param>
+    /// <param name="source">Identificador da origem para mensagens de erro.</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="certificate"/> ou <paramref name="source"/> é nulo.
+    /// </exception>
+    /// <exception cref="SmartTokenException">Certificado ainda não válido ou expirado.</exception>
     public static void CheckValidity(X509Certificate2 certificate, string source)
     {
         ArgumentNullException.ThrowIfNull(certificate);

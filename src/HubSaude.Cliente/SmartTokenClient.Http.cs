@@ -13,6 +13,13 @@ public sealed partial class SmartTokenClient
     /// <summary>
     /// Obtém a resposta completa do token endpoint, com cache, single-flight e retry (RF-03 a RF-07).
     /// </summary>
+    /// <param name="scope">Scope OAuth 2.0; nulo ou vazio omite o parâmetro.</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação.</param>
+    /// <returns>Resposta com <c>access_token</c> e <c>expires_in</c>.</returns>
+    /// <exception cref="ObjectDisposedException">O cliente já foi encerrado.</exception>
+    /// <exception cref="SmartTokenException">Resposta inválida ou falha de configuração.</exception>
+    /// <exception cref="SigningException">Falha ao assinar o <c>client_assertion</c>.</exception>
+    /// <exception cref="OperationCanceledException">A operação foi cancelada ou expirou.</exception>
     public async Task<TokenResponse> ObtainTokenResponseAsync(
         string? scope,
         CancellationToken cancellationToken = default)
