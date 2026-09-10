@@ -9,7 +9,7 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>HubSaude.Cliente</PackageId>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Authors>SES-GO; UFG/INF</Authors>
     <Company>SES-GO e UFG/INF — Fábrica de Software</Company>
     <Copyright>Copyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG)</Copyright>
