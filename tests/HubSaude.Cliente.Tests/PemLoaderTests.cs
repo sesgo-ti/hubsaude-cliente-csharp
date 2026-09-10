@@ -88,6 +88,7 @@ public sealed class PemLoaderTests : IDisposable
     {
         var ex = Assert.Throws<SmartTokenException>(() => PemLoader.LoadPrivateKey(_certPath));
         Assert.Contains("n\u00e3o suportado", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("PemObject", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
