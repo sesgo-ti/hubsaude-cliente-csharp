@@ -1,6 +1,6 @@
 # hubsaude-cliente-csharp
 
-[![Version](https://img.shields.io/badge/Version-0.3.0-yellow)]()
+[![Version](https://img.shields.io/badge/Version-0.4.0-yellow)]()
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-blue)]()
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -17,12 +17,12 @@ prevalece.
 ## Dependência NuGet
 
 O identificador do pacote é **`HubSaude.Cliente`** (versão atual
-`0.3.0`). O nupkg (e o SBOM CycloneDX) saem da GitHub Release gerada
+`0.4.0`). O nupkg (e o SBOM CycloneDX) saem da GitHub Release gerada
 pelo workflow de tag; a publicação no nuget.org ainda não faz parte
 deste repositório.
 
 ```xml
-<PackageReference Include="HubSaude.Cliente" Version="0.3.0" />
+<PackageReference Include="HubSaude.Cliente" Version="0.4.0" />
 ```
 
 ## Política da API pública
