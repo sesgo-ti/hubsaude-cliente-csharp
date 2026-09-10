@@ -121,18 +121,7 @@ internal sealed class TlsSettings
             return null;
         }
 
-        if (clientKey is RSA or ECDsa)
-        {
-            KeyCertificateConsistency.VerifyKeyPair(clientKey, clientCert);
-        }
-
-        return clientKey switch
-        {
-            RSA rsa => clientCert.CopyWithPrivateKey(rsa),
-            ECDsa ecdsa => clientCert.CopyWithPrivateKey(ecdsa),
-            _ => throw new SmartTokenException(
-                "Tipo de chave n\u00e3o suportado para mTLS: " + clientKey.GetType().Name),
-        };
+        return Pkcs12KeyStorage.FromKeyAndCertificate(clientKey, clientCert);
     }
 
     private X509Certificate2? LoadTrustAnchor()
