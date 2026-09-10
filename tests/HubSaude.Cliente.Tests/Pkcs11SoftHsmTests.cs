@@ -4,8 +4,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using Net.Pkcs11Interop.Common;
-using Net.Pkcs11Interop.HighLevelAPI;
 
 namespace HubSaude.Cliente.Tests;
 
@@ -15,10 +13,10 @@ namespace HubSaude.Cliente.Tests;
 /// permanece independente de HSM). No CI Linux o workflow instala SoftHSM2.
 /// </summary>
 /// <remarks>
-/// O par RSA é gerado no token via <c>C_GenerateKeyPair</c> (mesmo fluxo do
-/// cliente TypeScript), não importado de PEM — importação via
-/// <c>softhsm2-util --import</c> falha ou produz chaves incompatíveis com
-/// <c>CKM_SHA384_RSA_PKCS</c> em alguns builds do SoftHSM2 no Ubuntu.
+/// O token é preparado só com <c>softhsm2-util</c> (processo filho). O teste
+/// não chama <c>C_Initialize</c> no fixture: SoftHSM2 devolve
+/// <c>CKR_GENERAL_ERROR</c> se o processo já inicializou e finalizou a
+/// biblioteca, ou se o <c>tokendir</c> contém o próprio arquivo de conf.
 /// </remarks>
 public sealed class Pkcs11SoftHsmTests : IClassFixture<SoftHsmFixture>
 {
@@ -90,7 +88,7 @@ public sealed class SoftHsmFixture : IDisposable
     private const string SoPin = "0000";
 
     internal string? Library { get; }
-    internal RSA? PublicRsa { get; private set; }
+    internal RSA? PublicRsa { get; }
     internal string Label { get; } = "hubsaude-it-" + Guid.NewGuid().ToString("N")[..8];
     internal string KeyLabel { get; } = "jwt-key";
 
@@ -112,14 +110,34 @@ public sealed class SoftHsmFixture : IDisposable
         }
 
         _tokensDir = Directory.CreateTempSubdirectory("softhsm-").FullName;
+        var tokenStore = Path.Combine(_tokensDir, "tokens");
+        Directory.CreateDirectory(tokenStore);
         _conf = Path.Combine(_tokensDir, "softhsm2.conf");
-        File.WriteAllText(_conf, "directories.tokendir = " + _tokensDir.Replace('\\', '/') + Environment.NewLine
+        File.WriteAllText(
+            _conf,
+            "directories.tokendir = " + tokenStore.Replace('\\', '/') + Environment.NewLine
             + "objectstore.backend = file" + Environment.NewLine
             + "log.level = ERROR" + Environment.NewLine);
         Environment.SetEnvironmentVariable("SOFTHSM2_CONF", _conf);
 
         RunUtil("--init-token", "--free", "--label", Label, "--so-pin", SoPin, "--pin", Pin);
-        GenerateRsaKeyPairOnToken();
+
+        PublicRsa = RSA.Create(2048);
+        var pemPath = Path.Combine(_tokensDir, "jwt-key.pem");
+        File.WriteAllText(pemPath, PublicRsa.ExportPkcs8PrivateKeyPem());
+        RunUtil(
+            "--import",
+            pemPath,
+            "--token",
+            Label,
+            "--label",
+            KeyLabel,
+            "--id",
+            "A1B2",
+            "--pin",
+            Pin);
+
+        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
     }
 
     internal bool EnsureAvailable()
@@ -152,42 +170,6 @@ public sealed class SoftHsmFixture : IDisposable
             {
             }
         }
-    }
-
-    private void GenerateRsaKeyPairOnToken()
-    {
-        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
-        var factories = new Pkcs11InteropFactories();
-        using var lib = factories.Pkcs11LibraryFactory.LoadPkcs11Library(factories, Library!, AppType.MultiThreaded);
-        var slot = lib.GetSlotList(SlotsType.WithTokenPresent)
-            .First(s => string.Equals(s.GetTokenInfo().Label.Trim(), Label, StringComparison.Ordinal));
-        using var session = slot.OpenSession(SessionType.ReadWrite);
-        session.Login(CKU.CKU_USER, Pin);
-
-        var pub = new List<IObjectAttribute>
-        {
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_CLASS, CKO.CKO_PUBLIC_KEY),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_TOKEN, true),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_VERIFY, true),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_MODULUS_BITS, 2048),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_PUBLIC_EXPONENT, new byte[] { 1, 0, 1 }),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_LABEL, KeyLabel),
-        };
-        var priv = new List<IObjectAttribute>
-        {
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_CLASS, CKO.CKO_PRIVATE_KEY),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_TOKEN, true),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_PRIVATE, true),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_SIGN, true),
-            session.Factories.ObjectAttributeFactory.Create(CKA.CKA_LABEL, KeyLabel),
-        };
-        var mechanism = session.Factories.MechanismFactory.Create(CKM.CKM_RSA_PKCS_KEY_PAIR_GEN);
-        session.GenerateKeyPair(mechanism, pub, priv, out var publicKey, out _);
-
-        var modulus = session.GetAttributeValue(publicKey, [CKA.CKA_MODULUS])[0].GetValueAsByteArray();
-        var exponent = session.GetAttributeValue(publicKey, [CKA.CKA_PUBLIC_EXPONENT])[0].GetValueAsByteArray();
-        PublicRsa = RSA.Create();
-        PublicRsa.ImportParameters(new RSAParameters { Modulus = modulus, Exponent = exponent });
     }
 
     private void RunUtil(params string[] args)
