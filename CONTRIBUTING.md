@@ -91,7 +91,10 @@ ficam isentos). O ruleset da branch `develop` exige o check
 * IDisposable: recursos que exigem liberação explícita devem seguir o padrão
   `IDisposable`/`IAsyncDisposable` apropriado.
 * Testes: testes automatizados devem ser independentes de serviços externos
-  sempre que possível. Cobertura Coverlet: mínimo de 85% de linha em Release.
+  sempre que possível. Cobertura Coverlet: mínimo de 85% de linha em Release
+  (`Pkcs11SigningStrategy` fica fora do gate; PKCS#11 ponta a ponta roda
+  no CI com SoftHSM2). Homologação real não faz parte de `dotnet test`:
+  use `tools/HubSaude.Smoke` com `HOMOLOG_*`.
 * **Sem `Console.WriteLine` no assembly de produção**: use `ILogger`
   (`Microsoft.Extensions.Logging.Abstractions`).
 * **Testes de arquitetura** (`ClientArchRules` em
@@ -104,7 +107,8 @@ ficam isentos). O ruleset da branch `develop` exige o check
   `static`/`public`).
 * Dependências: evitar dependências desnecessárias e manter os pacotes NuGet
   atualizados conforme a política do projeto. Terceiros permitidos na
-  biblioteca: BouncyCastle (PEM) e logging abstractions.
+  biblioteca: BouncyCastle (PEM criptografado), Pkcs11Interop (PKCS#11)
+  e logging abstractions.
 
 ## Política de versionamento
 

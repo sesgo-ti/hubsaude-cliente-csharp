@@ -122,13 +122,25 @@ await using var client = SmartTokenClient.CreateBuilder()
 ```
 
 O PKCS#12 fornece a chave para o JWT e o certificado para mTLS. A senha
-é zerada ao final de `Build`. Alternativa já carregada em memória:
+é zerada ao final de `Build`. No Windows o SDK importa o PFX com
+`UserKeySet|Exportable` (o Schannel rejeita chave efêmera —
+`0x8009030D`). Nos demais sistemas usa `EphemeralKeySet`.
+
+Não carregue o PFX manualmente com `X509KeyStorageFlags.EphemeralKeySet`
+e `ClientCertificate` no Windows para mTLS. Prefira `ClientPkcs12`, ou
+combine `SigningStrategy` (HSM) com `ClientPkcs12` só para o certificado
+de cliente.
+
+Alternativa já carregada em memória (fora do Windows, ou quando a chave
+já está no store do usuário):
 
 ```csharp
 var pfx = X509CertificateLoader.LoadPkcs12FromFile(
     "certificado.pfx",
     "senha-pfx",
-    X509KeyStorageFlags.EphemeralKeySet);
+    OperatingSystem.IsWindows()
+        ? X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable
+        : X509KeyStorageFlags.EphemeralKeySet);
 await using var client = SmartTokenClient.CreateBuilder()
     .TokenEndpoint("https://hub.saude.go.gov.br/auth/token")
     .ClientId("meu-sistema")
@@ -139,10 +151,30 @@ await using var client = SmartTokenClient.CreateBuilder()
 
 ### HSM via PKCS#11
 
-PKCS#11 permanece fora desta série: use uma `ISigningStrategy` própria
-que delegue a assinatura ao dispositivo. mTLS com chave em hardware
-pode ser composto via `ClientCertificate` quando o certificado com
-chave não-exportável estiver disponível como `X509Certificate2`.
+A chave privada permanece no token. O cliente fecha a sessão PKCS#11
+no `Dispose`. Para mTLS, combine com um PFX que contenha só o
+certificado de cliente (ou um `X509Certificate2` com chave não-exportável):
+
+```csharp
+await using var client = SmartTokenClient.CreateBuilder()
+    .TokenEndpoint("https://hub.saude.go.gov.br/auth/token")
+    .ClientId("meu-sistema")
+    .SigningStrategy(SigningStrategyFactory.FromPkcs11(new Pkcs11Options
+    {
+        Library = "/usr/lib/softhsm/libsofthsm2.so",
+        Pin = pinDoToken,
+        TokenLabel = "hubsaude",
+        KeyLabel = "jwt-key",
+        JwtAlgorithm = "RS384",
+    }))
+    .ClientPkcs12("cliente-mtls.pfx", "alias-do-cert", senhaPfx)
+    .Build();
+```
+
+`Library` é o módulo do fabricante (`.so` / `.dll` / `.dylib`). Informe
+`KeyLabel` e/ou `KeyId`, e no máximo um entre `Slot` e `TokenLabel`.
+O PIN é `string` (limitação de `C_Login`). PEM e PKCS#11 são
+mutuamente exclusivos para a *assinatura*.
 
 ### OpenBao / chave já carregada
 
@@ -176,7 +208,7 @@ await using var client = SmartTokenClient.CreateBuilder()
     .PrivateKeyPem("chave-privada.pem")
     .CertificatePem("certificado.pem")
     .ServerTrustAnchor("ca-custom.pem")  // simulador/homologação
-    .TlsProtocol("TLSv1.2")              // padrão: TLSv1.3
+    .TlsProtocol("TLSv1.2")              // homologação HubSaúde: TLSv1.2; padrão do SDK: TLSv1.3
     .ConnectTimeout(TimeSpan.FromSeconds(10))
     .RequestTimeout(TimeSpan.FromSeconds(30))
     .AssertionTtlSeconds(120)
@@ -301,7 +333,8 @@ passa a ser o da instrumentação.
 | PEM/PKCS#8 não reconhecido | Chave em PKCS#1 ou formato inesperado | Converta com `openssl pkcs8 -topk8` ou use PKCS#12 |
 | TLS / confiança da CA | CA do servidor não no trust store | Use `ServerTrustAnchor` (simulador/homologação) — ver [troubleshooting TLS](docs/troubleshooting.md) |
 | Assinatura / par inconsistente | Certificado não corresponde à chave | Compare *modulus* (OpenSSL) ou use o mesmo PFX em `ClientPkcs12` |
-| TLS abortado após mTLS | Certificado de cliente rejeitado | Verifique validade/revogação do certificado |
+| TLS abortado após mTLS | Certificado de cliente rejeitado, ou Schannel sem chave persistida | Verifique validade/revogação; no Windows use `ClientPkcs12` (não `EphemeralKeySet`) |
+| Handshake TLS 1.3 falha no homolog | Ambiente exige TLS 1.2 | `.TlsProtocol("TLSv1.2")` |
 | `ObjectDisposedException` | Cliente já encerrado | Não reutilize após `Dispose` |
 
 Para diagnóstico aprofundado de confiança SSL/TLS, consulte o
@@ -317,6 +350,38 @@ dotnet test HubSaude.Cliente.sln --configuration Release
 
 O projeto de testes aplica Coverlet (mínimo 85% de line coverage) e
 testes de arquitetura em `tests/HubSaude.Cliente.Tests/ArchRules/`.
+O CI Linux instala SoftHSM2 e executa os testes PKCS#11 de ponta a
+ponta. Sem o módulo, esses casos são omitidos (a suíte unitária não
+depende de HSM). `Pkcs11SigningStrategy` fica fora do gate Coverlet
+porque exige biblioteca nativa.
+
+### Smoke contra homologação (integrador)
+
+`tools/HubSaude.Smoke` **não** entra no `HubSaude.Cliente.sln` nem no
+CI: é um console opt-in contra o ambiente real. Nenhuma credencial
+fica neste repositório (`.env` está no `.gitignore`).
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `HOMOLOG_CLIENT_ID` | sim | `client_id` já registrado no homolog |
+| `HOMOLOG_PFX_PATH` + `HOMOLOG_PFX_ALIAS` + `HOMOLOG_PFX_PASSWORD` | um dos conjuntos | PKCS#12 (recomendado no Windows) |
+| `HOMOLOG_CERT_PATH` + `HOMOLOG_KEY_PATH` | o outro conjunto | PEM; o SDK materializa PKCS#12 para mTLS |
+| `HOMOLOG_FHIR_BASE` | não | Padrão: `https://hub-homolog.saude.go.gov.br/` |
+| `HOMOLOG_SCOPE` | não | Padrão: `system/Patient.rs` |
+| `HOMOLOG_IG` / `HOMOLOG_IG_VERSAO` | não | Padrão: `hemograma` / `0.0.1` |
+
+O smoke usa **TLS 1.2** (o homolog recusa TLS 1.3 no handshake).
+
+```bash
+# PowerShell
+$env:HOMOLOG_CLIENT_ID = "org:..."
+$env:HOMOLOG_CERT_PATH = "C:\certs\cliente.cer"
+$env:HOMOLOG_KEY_PATH  = "C:\certs\cliente.key"
+dotnet run --project tools/HubSaude.Smoke
+```
+
+Sem as variáveis obrigatórias o processo encerra com código 2 e a
+lista acima. Código 1 indica falha na obtenção do token.
 
 ## Publicação de nova versão (release)
 

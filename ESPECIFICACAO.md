@@ -38,9 +38,7 @@ orquestração da aplicação integradora):
   token; o uso em `Authorization: Bearer` é responsabilidade do
   integrador;
 - gestão do credenciamento (o `client_id` e o registro da chave pública
-  são obtidos previamente via Ganesha);
-- PKCS#11 embutido nesta série: a assinatura em HSM DEVE ser feita por
-  uma `ISigningStrategy` fornecida pelo integrador.
+  são obtidos previamente via Ganesha).
 
 Aplicações em navegador ou dispositivos móveis NÃO DEVEM receber
 credenciais, certificados ou chaves privadas de SMART Backend Services.
@@ -340,8 +338,11 @@ sequenceDiagram
    - conteúdo PEM em string (ex.: variável de ambiente/secret);
    - PKCS#12 (`ClientPkcs12`, `FromPkcs12` / `FromPkcs12File`, chave
      referenciada por alias e senha);
-   - HSM/token via `ISigningStrategy` própria (PKCS#11 nativo permanece
-     fora desta série; a chave NÃO DEVE sair do hardware).
+   - HSM/token PKCS#11 via `SigningStrategyFactory.FromPkcs11`
+     (`Pkcs11Options`); a chave NÃO DEVE sair do hardware. mTLS nesse
+     caso DEVE ser composto com `ClientPkcs12` ou `ClientCertificate`;
+   - HSM/cofre via `ISigningStrategy` própria, quando o módulo PKCS#11
+     do SDK não se aplicar.
 3. Chave não encontrada (alias inexistente) ou PIN/senha inválidos
    DEVEM resultar em erro explícito.
 4. A estratégia DEVE ser task-safe: cada `Sign` usa as APIs
@@ -433,8 +434,11 @@ Na construção, o SDK DEVE aplicar as seguintes validações:
 1. falhar com erro explícito quando `tokenEndpoint` e `fhirBase` forem
    ambos definidos, ou nenhum;
 2. falhar com erro explícito quando `clientId` estiver ausente;
-3. falhar com erro explícito quando estratégia de assinatura e chave PEM
-   forem ambas definidas, ou nenhuma;
+3. falhar com erro explícito quando chave PEM for combinada com
+   `signingStrategy` ou `clientPkcs12`, ou quando nenhuma fonte de
+   assinatura (`signingStrategy`, `privateKeyPem` ou `clientPkcs12`)
+   for definida. `signingStrategy` (HSM/PKCS#11) PODE ser combinada
+   com `clientPkcs12` apenas para mTLS;
 4. substituir pelos padrões os valores não positivos de TTL do
    assertion, `maxRetries` ou margem do cache (comportamento tolerante);
 5. falhar com erro explícito quando `tokenCacheMaxEntries` for menor ou
@@ -483,15 +487,17 @@ liberar os recursos.
 
 #### RNF-03 — Higiene de segredos em memória
 
-Senhas e PINs DEVEM ser recebidos em `char[]` e limpos (zerados) após
-o uso.
+Senhas de PEM e PKCS#12 DEVEM ser recebidas em `char[]` e limpas
+(zeradas) após o uso. O PIN PKCS#11 é `string` porque a API nativa
+(`C_Login`) não aceita `char[]`.
 
 #### RNF-04 — Dependências mínimas
 
 O SDK DEVERIA usar primordialmente a biblioteca padrão do .NET
 (HTTP, JSON, criptografia), admitindo dependências pontuais apenas
-para lacunas reais (BouncyCastle para parsing PEM). NÃO DEVE depender
-de frameworks de aplicação (ASP.NET, EF, Polly).
+para lacunas reais (BouncyCastle para parsing PEM criptografado;
+Pkcs11Interop para PKCS#11). NÃO DEVE depender de frameworks de
+aplicação (ASP.NET, EF, Polly).
 
 #### RNF-05 — Desempenho
 
@@ -530,9 +536,9 @@ GitHub Release (`nupkg` / `snupkg`).
 | `clientId` | sim | — | Emitido pelo Ganesha |
 | `privateKeyPem` | sim² | — | Caminho do PEM da chave privada |
 | `privateKeyPassword` | não | — | Senha do PEM criptografado |
-| `signingStrategy` | sim² | — | Estratégia pronta (HSM, cofre etc.) |
+| `signingStrategy` | sim² | — | Estratégia pronta (PKCS#11, cofre etc.) |
 | `certificatePem` | não³ | — | Certificado do cliente (PEM) |
-| `clientPkcs12` (+alias, senha) | não | — | Assinatura + mTLS via PKCS#12 |
+| `clientPkcs12` (+alias, senha) | não² | — | Assinatura + mTLS; ou só mTLS com `signingStrategy` |
 | `clientCertificate` | não | — | `X509Certificate2` já carregado (mTLS) |
 | `serverTrustAnchor` | não | trust store da plataforma | PEM ou objeto X.509 |
 | `tlsProtocol` | não | `TLSv1.3` | Ex.: `TLSv1.2` |
@@ -548,7 +554,9 @@ GitHub Release (`nupkg` / `snupkg`).
 | `tokenCacheMaxEntries` | não | 1.000 | Deve ser positivo; descarte LRU por scope |
 
 ¹ Exatamente um entre `tokenEndpoint` e `fhirBase`.
-² Exatamente um entre `privateKeyPem` e `signingStrategy`.
+² Exatamente uma fonte de assinatura entre `privateKeyPem`,
+`signingStrategy` e `clientPkcs12`. `signingStrategy` + `clientPkcs12`
+é permitido (JWT no HSM, mTLS no PFX).
 ³ Obrigatório apenas para mTLS via chave em memória e para a
 verificação RF-15.
 
@@ -578,8 +586,8 @@ materiais criptográficos.
 |------------|-------------------------|
 | Assinatura RSA/ECDSA | `System.Security.Cryptography` (`RSA`, `ECDsa`) |
 | PEM (com senha) | `PemLoader` (BouncyCastle para formatos criptografados) |
-| PKCS#12 | `ClientPkcs12`, `X509CertificateLoader` / `FromPkcs12File` |
-| PKCS#11 (HSM) | Fora desta série; `ISigningStrategy` do integrador |
+| PKCS#12 | `ClientPkcs12`, `Pkcs12KeyStorage` (flags Schannel no Windows) |
+| PKCS#11 (HSM) | `SigningStrategyFactory.FromPkcs11`, `Pkcs11SigningStrategy` |
 | HTTP + TLS custom | `HttpClient` + `SocketsHttpHandler.SslOptions` |
 | mTLS | `SslOptions.ClientCertificates` |
 
@@ -612,7 +620,7 @@ Mapeamento para `HubSaude.Cliente` na série `0.3.x`.
 | RF-09 | `SmartConfigurationDiscovery`, `FhirBase` |
 | RF-10 | `SslOptionsFactory` |
 | RF-11 | `SslOptionsFactory` + `ClientCertificate` |
-| RF-12 | `ISigningStrategy`, `SigningStrategyFactory` (PKCS#11 via estratégia própria) |
+| RF-12 | `ISigningStrategy`, `SigningStrategyFactory` (`FromPkcs11` / `FromPkcs12`) |
 | RF-13 | `PemLoader` |
 | RF-14 | `CertificateValidator` |
 | RF-15 | `VerifyKeyPairConsistency`, `KeyCertificateConsistency` |
@@ -660,6 +668,13 @@ Esta biblioteca DEVE cobrir, no mínimo:
 15. **Integração**: fluxo completo de obtenção de token e TLS com trust
     anchor em ambiente de teste, executado fora do gate público quando exigir
     infraestrutura externa.
+16. **PKCS#11**: rejeição fail-fast sem módulo (opções, PIN, algoritmo);
+    assinatura verificável contra SoftHSM2 quando o módulo estiver
+    presente (CI Linux). Homologação real permanece opt-in
+    (`tools/HubSaude.Smoke`, variáveis `HOMOLOG_*`).
+17. **PKCS#12 / mTLS**: flags de armazenamento por plataforma; par
+    chave+certificado PEM materializado em PFX; alias por CN e, no
+    Windows, por `FriendlyName`.
 
 ## 12. Evolução prevista
 
