@@ -133,7 +133,7 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
-    /// Carrega PKCS#12 de arquivo e devolve a estratégia de assinatura (RF-12).
+    /// Cria estratégia a partir da chave privada de um arquivo PKCS#12/PFX.
     /// </summary>
     public static ISigningStrategy FromPkcs12File(string path, string alias, char[]? password)
     {
@@ -149,49 +149,24 @@ public static class SigningStrategyFactory
         }
     }
 
+    /// <summary>
+    /// Cria estratégia que assina no HSM/token via PKCS#11. A chave nunca sai do hardware.
+    /// Combine com <see cref="SmartTokenClientBuilder.ClientCertificate"/> ou
+    /// <see cref="SmartTokenClientBuilder.ClientPkcs12(byte[], string, char[])"/> para mTLS.
+    /// </summary>
+    /// <param name="options">Caminho do módulo, PIN, chave e algoritmo JWT.</param>
+    /// <returns>Estratégia que mantém a sessão PKCS#11 aberta até <see cref="IDisposable.Dispose"/>.</returns>
+    public static ISigningStrategy FromPkcs11(Pkcs11Options options)
+    {
+        return Pkcs11SigningStrategy.Open(options);
+    }
+
     internal static X509Certificate2 LoadPkcs12Certificate(byte[] pkcs12, string alias, char[]? password)
     {
         ArgumentNullException.ThrowIfNull(pkcs12);
         ArgumentNullException.ThrowIfNull(alias);
 
-        var passwordCopy = password is null ? null : (char[])password.Clone();
-        try
-        {
-            var passwordText = passwordCopy is null ? null : new string(passwordCopy);
-            var collection = X509CertificateLoader.LoadPkcs12Collection(
-                pkcs12,
-                passwordText,
-                X509KeyStorageFlags.EphemeralKeySet);
-
-            X509Certificate2? match = null;
-            foreach (var cert in collection)
-            {
-                if (cert.HasPrivateKey && MatchesAlias(cert, alias))
-                {
-                    match = cert;
-                    break;
-                }
-            }
-
-            if (match is null)
-            {
-                throw new SmartTokenException("Chave n\u00e3o encontrada no KeyStore: " + alias);
-            }
-
-            return match;
-        }
-        catch (SmartTokenException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new SmartTokenException("Falha ao obter chave do KeyStore: " + ex.Message, ex);
-        }
-        finally
-        {
-            PemLoader.ClearPassword(passwordCopy);
-        }
+        return Pkcs12KeyStorage.LoadCertificate(pkcs12, alias, password);
     }
 
     /// <summary>
@@ -269,7 +244,7 @@ public static class SigningStrategyFactory
         };
     }
 
-    private static ISigningStrategy WrapOwned(AsymmetricAlgorithm key, string algorithm, HashAlgorithmName? pssHash)
+    internal static ISigningStrategy WrapOwned(AsymmetricAlgorithm key, string algorithm, HashAlgorithmName? pssHash)
     {
         return key switch
         {
@@ -277,16 +252,5 @@ public static class SigningStrategyFactory
             ECDsa ecdsa => new PrivateKeySigningStrategy(ecdsa, algorithm, ownsKey: true),
             _ => throw new SmartTokenException("Tipo de chave n\u00e3o suportado: " + key.GetType().Name),
         };
-    }
-
-    private static bool MatchesAlias(X509Certificate2 cert, string alias)
-    {
-        if (string.Equals(cert.FriendlyName, alias, StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        var simple = cert.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
-        return string.Equals(simple, alias, StringComparison.Ordinal);
     }
 }

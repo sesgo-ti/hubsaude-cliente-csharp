@@ -22,6 +22,8 @@ internal static class ClientArchRules
         "HubSaude.Cliente.FaultToleranceConfig",
         "HubSaude.Cliente.ISigningStrategy",
         "HubSaude.Cliente.PemLoader",
+        "HubSaude.Cliente.Pkcs11Options",
+        "HubSaude.Cliente.Pkcs11SigningStrategy",
         "HubSaude.Cliente.PrivateKeySigningStrategy",
         "HubSaude.Cliente.PssParameters",
         "HubSaude.Cliente.SigningException",
@@ -49,6 +51,7 @@ internal static class ClientArchRules
     [
         "BouncyCastle.Cryptography",
         "Microsoft.Extensions.Logging.Abstractions",
+        "Pkcs11Interop",
     ];
 
     internal static Assembly ProductionAssembly => typeof(SmartTokenClient).Assembly;
