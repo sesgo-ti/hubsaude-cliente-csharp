@@ -27,9 +27,29 @@ builder.Services.AddSingleton(sp => SmartTokenClient.CreateBuilder()
     .Build());
 ```
 
+Com HSM, registre a mesma instância (não recrie a sessão PKCS#11 a
+cada request):
+
+```csharp
+builder.Services.AddSingleton(sp => SmartTokenClient.CreateBuilder()
+    .TokenEndpoint(tokenEndpoint)
+    .ClientId(clientId)
+    .SigningStrategy(SigningStrategyFactory.FromPkcs11(new Pkcs11Options
+    {
+        Library = pkcs11LibraryPath,
+        Pin = pkcs11Pin,
+        TokenLabel = tokenLabel,
+        KeyLabel = keyLabel,
+    }))
+    .ClientPkcs12(pfxBytes, pfxAlias, pfxPassword)
+    .Logger(sp.GetRequiredService<ILogger<SmartTokenClient>>())
+    .Build());
+```
+
 O `Dispose` é idempotente, aguarda operações em voo, encerra o
-`HttpClient` interno e invalida o cache. Chamadas de token posteriores
-falham com `ObjectDisposedException`.
+`HttpClient` interno, invalida o cache e dispõe a `ISigningStrategy`
+quando ela implementa `IDisposable` (sessão PKCS#11/HSM). Chamadas de
+token posteriores falham com `ObjectDisposedException`.
 
 ## Composição de resiliência
 

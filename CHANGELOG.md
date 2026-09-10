@@ -7,23 +7,39 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-09
+
+Assinatura em HSM (PKCS#11), mTLS compatível com Schannel no Windows e
+ferramenta opt-in de smoke contra homologação.
+
 ### Adicionado
 
-- Testes de arquitetura (`ClientArchRules` / `HubSaudeArchitectureTests`).
-- `NOTICE`, workflows de **release** (nupkg/snupkg + CycloneDX), **CodeQL**,
-  **Dependabot** e verificação **DCO** (`Signed-off-by`) em Pull Requests.
+- **PKCS#11** via `SigningStrategyFactory.FromPkcs11` e `Pkcs11Options`
+  (`Pkcs11SigningStrategy`, Pkcs11Interop). A chave privada não sai do
+  token; `SmartTokenClient.Dispose` encerra a sessão PKCS#11 quando a
+  estratégia implementa `IDisposable`.
+- Composição **`SigningStrategy` + `ClientPkcs12`**: JWT assinado no HSM
+  (ou cofre) e mTLS com certificado em PFX separado.
+- Smoke opt-in de homologação em `tools/HubSaude.Smoke` (variáveis
+  `HOMOLOG_*`; fora do `HubSaude.Cliente.sln` e do CI).
+- Testes PKCS#11 de ponta a ponta com SoftHSM2 no CI/release Linux
+  (`SOFTHSM_LIB`).
 
 ### Alterado
 
-- Documentação própria deste SDK (.NET 10): README, `ESPECIFICACAO.md`,
-  contribuição, integração enterprise e troubleshooting TLS com
-  `ServerTrustAnchor`, sem tratar outro ecossistema como referência.
-- Ruleset `develop`: DCO (`signed-off-by`) e CI (`verify`) obrigatórios;
-  removida exigência incorreta de assinatura GPG/SSH (`required_signatures`).
-- Metadados NuGet: copyright, LICENSE/NOTICE no pacote, símbolos
-  `snupkg`, build determinístico em CI.
-- `ESPECIFICACAO.md`: contrato comportamental de `HubSaude.Cliente`
-  0.3.x (API, rastreabilidade e casos de teste deste repositório).
+- **PKCS#12 / mTLS**: no Windows a chave é importada com
+  `UserKeySet|Exportable`; par PEM+certificado é materializado em PKCS#12
+  antes do handshake (`EphemeralKeySet` permanece nos demais SOs).
+- `ESPECIFICACAO.md`, README, guias de integração e troubleshooting
+  alinhados a PKCS#11 nativo e ao fluxo Schannel no Windows.
+- `NOTICE`: atribuição Pkcs11Interop (Apache-2.0).
+
+### Corrigido
+
+- mTLS no Windows com `PrivateKeyPem` + `CertificatePem` (Schannel
+  rejeitava chave efêmera — `0x8009030D`).
+- PKCS#11 no Ubuntu 24+: Pkcs11Interop carrega `libdl`; o SDK mapeia
+  para `libdl.so.2` (sem o symlink `libdl.so` o módulo não abria).
 
 ## [0.3.0] - 2026-09-01
 

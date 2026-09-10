@@ -150,6 +150,26 @@ await using var client = SmartTokenClient.CreateBuilder()
 `ServerTrustAnchor` aceita caminho PEM ou `X509Certificate2`. O
 certificado âncora é validado na construção (RF-14).
 
+O homolog atual (`hub-homolog.saude.go.gov.br`) exige **TLS 1.2**.
+Use `.TlsProtocol("TLSv1.2")` (o padrão do SDK é TLS 1.3). Há um
+console de smoke em `tools/HubSaude.Smoke` com variáveis `HOMOLOG_*`
+— veja o [README](../README.md#smoke-contra-homologação-integrador).
+
+### PKCS#11 no Linux (`libdl`)
+
+No Ubuntu 24+ o glibc não instala o symlink `libdl.so`. O SDK mapeia
+`libdl` para `libdl.so.2` ao carregar o módulo PKCS#11. Se ainda falhar
+com `DllNotFoundException: libdl`, instale `libc6-dev` ou confirme que
+`/usr/lib/x86_64-linux-gnu/libdl.so.2` existe.
+
+### mTLS no Windows (Schannel)
+
+O Schannel recusa certificado de cliente cuja chave privada foi
+importada com `EphemeralKeySet` (`0x8009030D` / "credentials supplied
+are not valid"). O SDK evita isso em `ClientPkcs12` e na materialização
+PEM→PKCS#12 (`UserKeySet|Exportable`). Não passe um PFX carregado com
+`EphemeralKeySet` para `ClientCertificate` em produção no Windows.
+
 ## Considerações finais
 
 - Este SDK exige **.NET 10** (`net10.0`).

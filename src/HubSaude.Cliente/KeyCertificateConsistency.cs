@@ -77,8 +77,9 @@ internal static class KeyCertificateConsistency
     /// </para>
     /// <para>
     /// <strong>Limitação:</strong> a verificação só é possível quando a estratégia é uma
-    /// <see cref="PrivateKeySigningStrategy"/>, pois é necessário conhecer o algoritmo para
-    /// verificar a assinatura. Estratégias customizadas são aceitas sem validação.
+    /// <see cref="PrivateKeySigningStrategy"/> ou <see cref="Pkcs11SigningStrategy"/>,
+    /// pois é necessário conhecer o algoritmo para verificar a assinatura. Estratégias
+    /// customizadas são aceitas sem validação.
     /// </para>
     /// </remarks>
     /// <param name="strategy">Estratégia de assinatura a validar.</param>
@@ -91,20 +92,34 @@ internal static class KeyCertificateConsistency
         ArgumentNullException.ThrowIfNull(strategy);
         ArgumentNullException.ThrowIfNull(certificate);
 
-        if (strategy is not PrivateKeySigningStrategy pkStrategy)
+        if (strategy is not PrivateKeySigningStrategy and not Pkcs11SigningStrategy)
         {
             return;
         }
 
         try
         {
-            var signature = pkStrategy.Sign(Challenge);
-            if (pkStrategy.RsaPadding is not null)
+            var signature = strategy.Sign(Challenge);
+            HashAlgorithmName hash;
+            RSASignaturePadding? rsaPadding;
+            if (strategy is PrivateKeySigningStrategy pkStrategy)
+            {
+                hash = pkStrategy.HashAlgorithm;
+                rsaPadding = pkStrategy.RsaPadding;
+            }
+            else
+            {
+                var p11 = (Pkcs11SigningStrategy)strategy;
+                hash = p11.HashAlgorithm;
+                rsaPadding = p11.RsaPadding;
+            }
+
+            if (rsaPadding is not null)
             {
                 using var rsa = certificate.GetRSAPublicKey()
                     ?? throw new SmartTokenException(
                         "Chave privada n\u00e3o corresponde ao certificado: assinatura inv\u00e1lida");
-                if (!rsa.VerifyData(Challenge, signature, pkStrategy.HashAlgorithm, pkStrategy.RsaPadding))
+                if (!rsa.VerifyData(Challenge, signature, hash, rsaPadding))
                 {
                     throw new SmartTokenException(
                         "Chave privada n\u00e3o corresponde ao certificado: assinatura inv\u00e1lida");
@@ -119,7 +134,7 @@ internal static class KeyCertificateConsistency
             if (!ecdsa.VerifyData(
                     Challenge,
                     signature,
-                    pkStrategy.HashAlgorithm,
+                    hash,
                     DSASignatureFormat.IeeeP1363FixedFieldConcatenation))
             {
                 throw new SmartTokenException(

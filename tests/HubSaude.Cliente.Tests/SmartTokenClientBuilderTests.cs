@@ -73,7 +73,7 @@ public sealed class SmartTokenClientBuilderTests : IDisposable
             .TokenEndpoint("https://auth.example.com/token")
             .ClientId("id")
             .Build());
-        Assert.Contains("signingStrategy ou privateKeyPem", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("signingStrategy, privateKeyPem ou clientPkcs12", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -409,6 +409,34 @@ public sealed class SmartTokenClientBuilderTests : IDisposable
             SmartTokenClient.DefaultAssertionTtlSeconds,
             doc.RootElement.GetProperty("exp").GetInt64() - doc.RootElement.GetProperty("iat").GetInt64());
         Assert.Equal(SmartTokenClient.DefaultMaxRetries, client.FaultTolerance.MaxRetries);
+    }
+
+    [Fact]
+    public void devePermitirSigningStrategyComClientPkcs12ParaMtls()
+    {
+        using var rsa = CryptoFixtures.CreateRsa();
+        using var cert = CryptoFixtures.SelfSignedCert(rsa, "test-alias");
+        var pfx = cert.Export(X509ContentType.Pfx, "changeit");
+        var client = Register(SmartTokenClient.CreateBuilder()
+            .TokenEndpoint("https://auth.example.com/token")
+            .ClientId("id")
+            .SigningStrategy(new FakeSigningStrategy())
+            .ClientPkcs12(pfx, "test-alias", "changeit".ToCharArray())
+            .Build());
+        Assert.Contains(".", client.BuildClientAssertion(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void deveDisporEstrategiaIDisposableAoFecharCliente()
+    {
+        var strategy = new DisposableSigningStrategy();
+        var client = SmartTokenClient.CreateBuilder()
+            .TokenEndpoint("https://auth.example.com/token")
+            .ClientId("id")
+            .SigningStrategy(strategy)
+            .Build();
+        client.Dispose();
+        Assert.True(strategy.Disposed);
     }
 
     [Fact]

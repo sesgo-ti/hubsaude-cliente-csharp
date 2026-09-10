@@ -8,7 +8,8 @@ namespace HubSaude.Cliente;
 /// </summary>
 /// <remarks>
 /// Implementações podem assinar com material em memória, PKCS#12 ou HSM
-/// (PKCS#11). A operação devolve a assinatura crua, sem codificação Base64.
+/// (PKCS#11 via <see cref="SigningStrategyFactory.FromPkcs11"/>). A operação
+/// devolve a assinatura crua, sem codificação Base64.
 /// </remarks>
 public interface ISigningStrategy
 {

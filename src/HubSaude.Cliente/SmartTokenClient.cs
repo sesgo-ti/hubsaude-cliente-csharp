@@ -409,6 +409,11 @@ public sealed partial class SmartTokenClient : IDisposable, IAsyncDisposable
         {
             _tokenCache.InvalidateAll();
             _tokenCache.DisposeLocks();
+            if (SigningStrategy is IDisposable disposableStrategy)
+            {
+                disposableStrategy.Dispose();
+            }
+
             _logger.LogDebug("SmartTokenClient fechado para clientId={ClientId}", ClientId);
         }
     }

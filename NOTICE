@@ -8,3 +8,10 @@ This product includes software developed by the Universidade Federal de Goiás
 This product implements the SMART on FHIR Backend Services Authorization
 specification (https://hl7.org/fhir/smart-app-launch/backend-services.html)
 and OAuth 2.0 JWT Profile for Client Authentication (RFC 7523).
+
+This product includes Pkcs11Interop
+(https://github.com/Pkcs11Interop/Pkcs11Interop), licensed under the
+Apache License 2.0.
+
+This product includes BouncyCastle Cryptography
+(https://www.bouncycastle.org/), licensed under the MIT License.
