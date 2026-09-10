@@ -38,6 +38,8 @@ ferramenta opt-in de smoke contra homologação.
 
 - mTLS no Windows com `PrivateKeyPem` + `CertificatePem` (Schannel
   rejeitava chave efêmera — `0x8009030D`).
+- PKCS#11 no Ubuntu 24+: Pkcs11Interop carrega `libdl`; o SDK mapeia
+  para `libdl.so.2` (sem o symlink `libdl.so` o módulo não abria).
 
 ## [0.3.0] - 2026-09-01
 

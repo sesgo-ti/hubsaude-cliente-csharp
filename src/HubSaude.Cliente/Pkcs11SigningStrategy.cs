@@ -2,6 +2,8 @@
 // Copyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG).
 
 using System.Collections.Concurrent;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Net.Pkcs11Interop.Common;
 using Net.Pkcs11Interop.HighLevelAPI;
@@ -20,6 +22,8 @@ public sealed class Pkcs11SigningStrategy : ISigningStrategy, IDisposable
 
     private static readonly ConcurrentDictionary<string, Lazy<IPkcs11Library>> Libraries =
         new(StringComparer.OrdinalIgnoreCase);
+
+    private static int _nativeResolverRegistered;
 
     private readonly ISession _session;
     private readonly IObjectHandle _privateKey;
@@ -162,11 +166,61 @@ public sealed class Pkcs11SigningStrategy : ISigningStrategy, IDisposable
 
     private static IPkcs11Library LoadLibrary(string path)
     {
+        EnsureNativeLibraryResolver();
         var factories = new Pkcs11InteropFactories();
         return factories.Pkcs11LibraryFactory.LoadPkcs11Library(
             factories,
             path,
             AppType.MultiThreaded);
+    }
+
+    /// <summary>
+    /// Pkcs11Interop faz P/Invoke de <c>libdl</c>. No Ubuntu 24+ o glibc
+    /// não instala o symlink <c>libdl.so</c> (só <c>libdl.so.2</c>), o que
+    /// gera <see cref="DllNotFoundException"/> ao carregar o módulo PKCS#11.
+    /// </summary>
+    internal static void EnsureNativeLibraryResolver()
+    {
+        if (Interlocked.Exchange(ref _nativeResolverRegistered, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            NativeLibrary.SetDllImportResolver(
+                typeof(Pkcs11InteropFactories).Assembly,
+                ResolvePkcs11NativeLibrary);
+        }
+        catch (InvalidOperationException)
+        {
+            // Resolver já registrado neste AppDomain.
+        }
+    }
+
+    private static IntPtr ResolvePkcs11NativeLibrary(
+        string libraryName,
+        Assembly assembly,
+        DllImportSearchPath? searchPath)
+    {
+        if (libraryName is not ("libdl" or "dl" or "libdl.so"))
+        {
+            return IntPtr.Zero;
+        }
+
+        string[] candidates = OperatingSystem.IsMacOS()
+            ? ["libdl.dylib", "libSystem.dylib"]
+            : ["libdl.so.2", "libdl.so", "libc.so.6"];
+
+        foreach (var candidate in candidates)
+        {
+            if (NativeLibrary.TryLoad(candidate, assembly, searchPath, out var handle))
+            {
+                return handle;
+            }
+        }
+
+        return IntPtr.Zero;
     }
 
     private static ISlot FindSlot(IPkcs11Library library, Pkcs11Options options)

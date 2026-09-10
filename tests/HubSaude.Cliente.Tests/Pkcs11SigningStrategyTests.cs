@@ -69,6 +69,13 @@ public sealed class Pkcs11SigningStrategyTests
     }
 
     [Fact]
+    public void deveRegistrarResolvedorNativoDeFormaIdempotente()
+    {
+        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
+        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
+    }
+
+    [Fact]
     public void deveExigirBibliotecaEPin()
     {
         Assert.Throws<ArgumentException>(() => SigningStrategyFactory.FromPkcs11(new Pkcs11Options

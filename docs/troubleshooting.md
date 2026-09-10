@@ -155,6 +155,13 @@ Use `.TlsProtocol("TLSv1.2")` (o padrão do SDK é TLS 1.3). Há um
 console de smoke em `tools/HubSaude.Smoke` com variáveis `HOMOLOG_*`
 — veja o [README](../README.md#smoke-contra-homologação-integrador).
 
+### PKCS#11 no Linux (`libdl`)
+
+No Ubuntu 24+ o glibc não instala o symlink `libdl.so`. O SDK mapeia
+`libdl` para `libdl.so.2` ao carregar o módulo PKCS#11. Se ainda falhar
+com `DllNotFoundException: libdl`, instale `libc6-dev` ou confirme que
+`/usr/lib/x86_64-linux-gnu/libdl.so.2` existe.
+
 ### mTLS no Windows (Schannel)
 
 O Schannel recusa certificado de cliente cuja chave privada foi

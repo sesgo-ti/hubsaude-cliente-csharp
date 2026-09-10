@@ -156,6 +156,7 @@ public sealed class SoftHsmFixture : IDisposable
 
     private void GenerateRsaKeyPairOnToken()
     {
+        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
         var factories = new Pkcs11InteropFactories();
         using var lib = factories.Pkcs11LibraryFactory.LoadPkcs11Library(factories, Library!, AppType.MultiThreaded);
         var slot = lib.GetSlotList(SlotsType.WithTokenPresent)
