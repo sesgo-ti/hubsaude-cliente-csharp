@@ -27,15 +27,22 @@ jobs:
             **/*.csproj
             global.json
 
-      # PKCS#11 contra SoftHSM2 (HSM em software). O caminho do módulo
-      # varia por distribuição — descobrir e exportar SOFTHSM_LIB.
+      # PKCS#11 contra SoftHSM2. SOFTHSM2_CONF precisa existir no environ
+      # do processo *antes* do testhost: libsofthsm2 lê via getenv nativo
+      # (Environment.SetEnvironmentVariable no teste não basta e o C_Initialize
+      # cai em CKR_GENERAL_ERROR ao usar /etc/softhsm/softhsm2.conf).
       - name: Instalar SoftHSM2
         run: |
           sudo apt-get update
           sudo apt-get install -y softhsm2
           lib="$(dpkg -L libsofthsm2 | grep -m1 'libsofthsm2\.so$')"
           test -n "$lib" || { echo "libsofthsm2.so não encontrado" >&2; exit 1; }
+          tokens="${RUNNER_TEMP}/softhsm-tokens"
+          conf="${RUNNER_TEMP}/softhsm2.conf"
+          mkdir -p "$tokens"
+          printf 'directories.tokendir = %s\nobjectstore.backend = file\nlog.level = ERROR\n' "$tokens" > "$conf"
           echo "SOFTHSM_LIB=$lib" >> "$GITHUB_ENV"
+          echo "SOFTHSM2_CONF=$conf" >> "$GITHUB_ENV"
 
       - name: Verificar build e qualidade
         run: dotnet test HubSaude.Cliente.sln --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"

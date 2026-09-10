@@ -73,6 +73,7 @@ public sealed class Pkcs11SigningStrategyTests
     {
         Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
         Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
+        Pkcs11SigningStrategy.SyncSoftHsmConfigToNativeEnvironment();
     }
 
     [Fact]

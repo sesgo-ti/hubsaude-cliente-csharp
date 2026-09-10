@@ -10,7 +10,9 @@ namespace HubSaude.Cliente.Tests;
 /// <summary>
 /// Assinatura PKCS#11 de ponta a ponta contra SoftHSM2. Sem o módulo ou o
 /// <c>softhsm2-util</c>, os casos retornam imediatamente (a suíte unitária
-/// permanece independente de HSM). No CI Linux o workflow instala SoftHSM2.
+/// permanece independente de HSM). No CI Linux o workflow instala SoftHSM2
+/// e exporta <c>SOFTHSM2_CONF</c> no environ do testhost (libsofthsm2 lê
+/// via getenv nativo).
 /// </summary>
 /// <remarks>
 /// O token é preparado só com <c>softhsm2-util</c> (processo filho). O teste
@@ -112,13 +114,25 @@ public sealed class SoftHsmFixture : IDisposable
         _tokensDir = Directory.CreateTempSubdirectory("softhsm-").FullName;
         var tokenStore = Path.Combine(_tokensDir, "tokens");
         Directory.CreateDirectory(tokenStore);
-        _conf = Path.Combine(_tokensDir, "softhsm2.conf");
+
+        var confFromEnv = Environment.GetEnvironmentVariable("SOFTHSM2_CONF");
+        _conf = !string.IsNullOrWhiteSpace(confFromEnv)
+            ? confFromEnv
+            : Path.Combine(_tokensDir, "softhsm2.conf");
+        var confDir = Path.GetDirectoryName(_conf);
+        if (!string.IsNullOrEmpty(confDir))
+        {
+            Directory.CreateDirectory(confDir);
+        }
+
         File.WriteAllText(
             _conf,
             "directories.tokendir = " + tokenStore.Replace('\\', '/') + Environment.NewLine
             + "objectstore.backend = file" + Environment.NewLine
             + "log.level = ERROR" + Environment.NewLine);
         Environment.SetEnvironmentVariable("SOFTHSM2_CONF", _conf);
+        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
+        Pkcs11SigningStrategy.SyncSoftHsmConfigToNativeEnvironment();
 
         RunUtil("--init-token", "--free", "--label", Label, "--so-pin", SoPin, "--pin", Pin);
 
@@ -137,7 +151,7 @@ public sealed class SoftHsmFixture : IDisposable
             "--pin",
             Pin);
 
-        Pkcs11SigningStrategy.EnsureNativeLibraryResolver();
+        Pkcs11SigningStrategy.SyncSoftHsmConfigToNativeEnvironment();
     }
 
     internal bool EnsureAvailable()

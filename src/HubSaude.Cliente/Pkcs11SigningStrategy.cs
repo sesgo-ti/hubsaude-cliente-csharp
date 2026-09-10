@@ -167,11 +167,13 @@ public sealed class Pkcs11SigningStrategy : ISigningStrategy, IDisposable
     private static IPkcs11Library LoadLibrary(string path)
     {
         EnsureNativeLibraryResolver();
+        SyncSoftHsmConfigToNativeEnvironment();
         var factories = new Pkcs11InteropFactories();
         return factories.Pkcs11LibraryFactory.LoadPkcs11Library(
             factories,
             path,
-            AppType.MultiThreaded);
+            AppType.MultiThreaded,
+            InitType.WithoutFunctionList);
     }
 
     /// <summary>
@@ -197,6 +199,33 @@ public sealed class Pkcs11SigningStrategy : ISigningStrategy, IDisposable
             // Resolver já registrado neste AppDomain.
         }
     }
+
+    /// <summary>
+    /// SoftHSM2 lê <c>SOFTHSM2_CONF</c> com <c>getenv</c>. No testhost do .NET
+    /// <see cref="Environment.SetEnvironmentVariable(string, string?)"/> nem
+    /// sempre atualiza o environ nativo a tempo do <c>C_Initialize</c>.
+    /// </summary>
+    internal static void SyncSoftHsmConfigToNativeEnvironment()
+    {
+        var conf = Environment.GetEnvironmentVariable("SOFTHSM2_CONF");
+        if (string.IsNullOrEmpty(conf) || OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var libcName = OperatingSystem.IsMacOS() ? "libSystem.dylib" : "libc.so.6";
+        if (!NativeLibrary.TryLoad(libcName, out var libc)
+            || !NativeLibrary.TryGetExport(libc, "setenv", out var setenvPtr))
+        {
+            return;
+        }
+
+        var setenv = Marshal.GetDelegateForFunctionPointer<SetEnvNative>(setenvPtr);
+        _ = setenv("SOFTHSM2_CONF", conf, overwrite: 1);
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    private delegate int SetEnvNative(string name, string value, int overwrite);
 
     private static IntPtr ResolvePkcs11NativeLibrary(
         string libraryName,
