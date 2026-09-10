@@ -74,7 +74,7 @@ public sealed class SmartTokenClientBuilder
         return this;
     }
 
-    /// <summary>Estratégia de assinatura pronta (HSM, cofre). Mutuamente exclusivo com PEM.</summary>
+    /// <summary>Estratégia de assinatura pronta (HSM/PKCS#11, cofre). Mutuamente exclusivo com PEM; pode ser combinada com PKCS#12 só para mTLS.</summary>
     public SmartTokenClientBuilder SigningStrategy(ISigningStrategy signingStrategy)
     {
         _signing.SetSigningStrategy(signingStrategy);
@@ -89,8 +89,9 @@ public sealed class SmartTokenClientBuilder
     }
 
     /// <summary>
-    /// PKCS#12 do cliente: assinatura do JWT e mTLS com o mesmo certificado.
-    /// Mutuamente exclusivo com PEM e <see cref="SigningStrategy"/>.
+    /// PKCS#12 do cliente. Isolado, assina o JWT e configura mTLS com o mesmo
+    /// certificado. Com <see cref="SigningStrategy"/> (HSM/PKCS#11), o PKCS#12
+    /// é usado apenas no mTLS. Mutuamente exclusivo com PEM.
     /// </summary>
     public SmartTokenClientBuilder ClientPkcs12(string pkcs12Path, string alias, char[] password)
     {

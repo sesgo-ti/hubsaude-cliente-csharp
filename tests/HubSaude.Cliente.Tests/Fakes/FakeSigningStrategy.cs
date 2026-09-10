@@ -14,3 +14,23 @@ internal sealed class FakeSigningStrategy : ISigningStrategy
         return [];
     }
 }
+
+/// <summary>
+/// Espia o <see cref="IDisposable"/> da estratégia, para o cliente fechar a sessão PKCS#11/HSM.
+/// </summary>
+internal sealed class DisposableSigningStrategy : ISigningStrategy, IDisposable
+{
+    public bool Disposed { get; private set; }
+
+    public byte[] Sign(byte[] data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ObjectDisposedException.ThrowIf(Disposed, this);
+        return [1];
+    }
+
+    public void Dispose()
+    {
+        Disposed = true;
+    }
+}

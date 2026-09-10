@@ -19,10 +19,9 @@ namespace HubSaude.Cliente;
 /// exclusivamente pelos métodos fluentes do builder.
 /// </para>
 /// <para>
-/// As fontes de assinatura são mutuamente exclusivas: ou uma
-/// <see cref="ISigningStrategy"/> própria (HSM, cofre de segredos) ou material
-/// em arquivo PEM/PKCS#12, da qual a estratégia é derivada conforme o algoritmo
-/// JWT configurado.
+/// PEM e PKCS#12 são mutuamente exclusivos entre si e com uma estratégia
+/// própria para a <em>assinatura</em>. Uma <see cref="ISigningStrategy"/>
+/// (HSM/PKCS#11, cofre) PODE ser combinada com PKCS#12 só para mTLS.
 /// </para>
 /// </remarks>
 internal sealed class SigningSettings
@@ -99,15 +98,24 @@ internal sealed class SigningSettings
             sources++;
         }
 
-        if (sources > 1)
+        if (_privateKeyPem is not null && (_signingStrategy is not null || _pkcs12 is not null))
         {
             throw new InvalidOperationException(
                 "Defina signingStrategy OU privateKeyPem OU clientPkcs12, n\u00e3o combina\u00e7\u00f5es");
         }
 
+        if (sources == 0)
+        {
+            throw new InvalidOperationException(
+                "\u00c9 obrigat\u00f3rio definir signingStrategy, privateKeyPem ou clientPkcs12");
+        }
+
         if (_signingStrategy is not null)
         {
-            return new Resolved(_signingStrategy, ClientKey: null, ClientCertificate: null);
+            X509Certificate2? mtlsFromPkcs12 = _pkcs12 is null
+                ? null
+                : SigningStrategyFactory.LoadPkcs12Certificate(_pkcs12, _pkcs12Alias!, _pkcs12Password);
+            return new Resolved(_signingStrategy, ClientKey: null, mtlsFromPkcs12);
         }
 
         if (_pkcs12 is not null)
@@ -119,15 +127,12 @@ internal sealed class SigningSettings
                 cert);
         }
 
-        if (_privateKeyPem is null)
-        {
-            throw new InvalidOperationException(
-                "\u00c9 obrigat\u00f3rio definir signingStrategy ou privateKeyPem");
-        }
-
-        var clientKey = PemLoader.LoadPrivateKey(_privateKeyPem, _privateKeyPassword);
+        var clientKey = PemLoader.LoadPrivateKey(_privateKeyPem!, _privateKeyPassword);
+        var jca = SigningStrategyFactory.JwtAlgorithmToJava(_jwtAlgorithm);
+        var pss = SigningStrategyFactory.PssParameterSpecFor(_jwtAlgorithm);
+        var pssHash = pss is null ? (HashAlgorithmName?)null : SigningStrategyFactory.HashFromDigest(pss.DigestAlgorithm);
         return new Resolved(
-            SigningStrategyFactory.FromPrivateKeyForJwt(clientKey, _jwtAlgorithm),
+            SigningStrategyFactory.WrapOwned(clientKey, jca, pssHash),
             clientKey,
             ClientCertificate: null);
     }
