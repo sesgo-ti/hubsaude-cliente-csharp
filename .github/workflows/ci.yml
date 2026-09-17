@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [develop]
+    branches: ["**"]
   pull_request:
     branches: [develop]
 
@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   verify:
