@@ -73,6 +73,16 @@ public sealed class CertificateValidatorTests : IDisposable
     public void deveRejeitarCertificadoNulo()
     {
         Assert.Throws<ArgumentNullException>(() => CertificateValidator.CheckValidity(null!, "src"));
+        using var cert = CryptoFixtures.SelfSignedCert(_rsa, "nulo-src");
+        Assert.Throws<ArgumentNullException>(() => CertificateValidator.CheckValidity(cert, null!));
+    }
+
+    [Fact]
+    public void deveRejeitarArgumentosNulosEmValidateFromPem()
+    {
+        Assert.Throws<ArgumentNullException>(() => CertificateValidator.ValidateFromPemFile(null!));
+        Assert.Throws<ArgumentNullException>(() => CertificateValidator.ValidateFromPem(null!, "src"));
+        Assert.Throws<ArgumentNullException>(() => CertificateValidator.ValidateFromPem("pem", null!));
     }
 
     private string Track(string path)

@@ -151,7 +151,7 @@ internal static class Pkcs12KeyStorage
 
             if (match is null)
             {
-                throw new SmartTokenException("Chave n\u00e3o encontrada no KeyStore: " + alias);
+                throw new SmartTokenException("Chave n\u00e3o encontrada no PKCS#12: " + alias);
             }
 
             CertificateValidator.CheckValidity(match, match.Subject);
@@ -163,7 +163,7 @@ internal static class Pkcs12KeyStorage
         }
         catch (Exception ex)
         {
-            throw new SmartTokenException("Falha ao obter chave do KeyStore: " + ex.Message, ex);
+            throw new SmartTokenException("Falha ao carregar PKCS#12: " + ex.Message, ex);
         }
         finally
         {

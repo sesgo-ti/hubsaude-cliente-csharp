@@ -1,6 +1,7 @@
 ﻿// SPDX-License-Identifier: Apache-2.0
 // Copyright 2025-2026 Estado de Goiás (SES-GO) e Universidade Federal de Goiás (UFG).
 
+using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -22,10 +23,12 @@ public static class SigningStrategyFactory
         "RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512";
 
     /// <summary>
-    /// Cria estratégia a partir de chave RSA com algoritmo padrão (<c>SHA384withRSA</c>).
+    /// Cria estratégia a partir de chave RSA com algoritmo padrão (<c>RS384</c>).
     /// </summary>
     /// <param name="privateKey">Chave privada RSA já carregada.</param>
     /// <returns>Estratégia que não assume ownership da chave.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="privateKey"/> é nulo.</exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     public static ISigningStrategy FromPrivateKey(RSA privateKey)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
@@ -36,8 +39,15 @@ public static class SigningStrategyFactory
     /// Cria estratégia a partir de chave RSA com algoritmo de assinatura explícito.
     /// </summary>
     /// <param name="privateKey">Chave privada RSA já carregada.</param>
-    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withRSA</c>, <c>RSASSA-PSS</c>).</param>
+    /// <param name="algorithm">
+    /// Algoritmo JWT (<c>RS256</c>, <c>RS384</c>, <c>RS512</c>, <c>PS256</c>,
+    /// <c>PS384</c>, <c>PS512</c>) ou identificador de assinatura legado ainda aceito.
+    /// </param>
     /// <returns>Estratégia que não assume ownership da chave.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="privateKey"/> ou <paramref name="algorithm"/> é nulo.
+    /// </exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     public static ISigningStrategy FromPrivateKey(RSA privateKey, string algorithm)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
@@ -49,8 +59,15 @@ public static class SigningStrategyFactory
     /// Cria estratégia a partir de chave ECDSA com algoritmo de assinatura explícito.
     /// </summary>
     /// <param name="privateKey">Chave privada ECDSA já carregada.</param>
-    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
+    /// <param name="algorithm">
+    /// Algoritmo JWT (<c>ES256</c>, <c>ES384</c>, <c>ES512</c>) ou identificador
+    /// de assinatura legado ainda aceito.
+    /// </param>
     /// <returns>Estratégia que não assume ownership da chave.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="privateKey"/> ou <paramref name="algorithm"/> é nulo.
+    /// </exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     public static ISigningStrategy FromPrivateKey(ECDsa privateKey, string algorithm)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
@@ -63,6 +80,9 @@ public static class SigningStrategyFactory
     /// </summary>
     /// <param name="keyPath">Caminho do arquivo PEM.</param>
     /// <returns>Estratégia com ownership da chave carregada.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="keyPath"/> é nulo.</exception>
+    /// <exception cref="SmartTokenException">PEM inválido ou formato não suportado.</exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static ISigningStrategy FromPemFile(string keyPath)
     {
         return FromPemFile(keyPath, password: null);
@@ -74,6 +94,9 @@ public static class SigningStrategyFactory
     /// <param name="keyPath">Caminho do arquivo PEM.</param>
     /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
     /// <returns>Estratégia com ownership da chave carregada.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="keyPath"/> é nulo.</exception>
+    /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static ISigningStrategy FromPemFile(string keyPath, char[]? password)
     {
         ArgumentNullException.ThrowIfNull(keyPath);
@@ -87,6 +110,8 @@ public static class SigningStrategyFactory
     /// <param name="pemContent">Texto PEM da chave.</param>
     /// <param name="password">Senha do PEM criptografado; nulo quando em claro.</param>
     /// <returns>Estratégia com ownership da chave carregada.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="pemContent"/> é nulo.</exception>
+    /// <exception cref="SmartTokenException">PEM inválido, senha incorreta ou formato não suportado.</exception>
     public static ISigningStrategy FromPemString(string pemContent, char[]? password)
     {
         ArgumentNullException.ThrowIfNull(pemContent);
@@ -99,6 +124,7 @@ public static class SigningStrategyFactory
     /// </summary>
     /// <param name="certificate">Certificado contendo a chave privada.</param>
     /// <returns>Estratégia com ownership da chave extraída.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="certificate"/> é nulo.</exception>
     /// <exception cref="SmartTokenException">Certificado sem chave privada exportável.</exception>
     public static ISigningStrategy FromCertificate(X509Certificate2 certificate)
     {
@@ -117,7 +143,7 @@ public static class SigningStrategyFactory
                 ecdsa, PrivateKeySigningStrategy.DefaultAlgorithm, ownsKey: true);
         }
 
-        throw new SmartTokenException("Chave n\u00e3o encontrada no KeyStore: (certificado sem chave privada)");
+        throw new SmartTokenException("Certificado sem chave privada exportável.");
     }
 
     /// <summary>
@@ -127,6 +153,12 @@ public static class SigningStrategyFactory
     /// <param name="alias">Alias ou nome simples da entrada com chave privada.</param>
     /// <param name="password">Senha do PKCS#12; nulo quando não protegido.</param>
     /// <returns>Estratégia com ownership da chave do certificado.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="pkcs12"/> ou <paramref name="alias"/> é nulo.
+    /// </exception>
+    /// <exception cref="SmartTokenException">
+    /// PKCS#12 inválido, senha incorreta, alias inexistente ou certificado sem chave privada.
+    /// </exception>
     public static ISigningStrategy FromPkcs12(byte[] pkcs12, string alias, char[]? password)
     {
         return FromCertificate(LoadPkcs12Certificate(pkcs12, alias, password));
@@ -135,6 +167,17 @@ public static class SigningStrategyFactory
     /// <summary>
     /// Cria estratégia a partir da chave privada de um arquivo PKCS#12/PFX.
     /// </summary>
+    /// <param name="path">Caminho do arquivo PFX/P12.</param>
+    /// <param name="alias">Alias ou nome simples da entrada com chave privada.</param>
+    /// <param name="password">Senha do PKCS#12; nulo quando não protegido.</param>
+    /// <returns>Estratégia com ownership da chave do certificado.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="path"/> ou <paramref name="alias"/> é nulo.
+    /// </exception>
+    /// <exception cref="SmartTokenException">
+    /// PKCS#12 inválido, senha incorreta, alias inexistente ou certificado sem chave privada.
+    /// </exception>
+    /// <exception cref="IOException">Falha ao ler o arquivo.</exception>
     public static ISigningStrategy FromPkcs12File(string path, string alias, char[]? password)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -156,6 +199,9 @@ public static class SigningStrategyFactory
     /// </summary>
     /// <param name="options">Caminho do módulo, PIN, chave e algoritmo JWT.</param>
     /// <returns>Estratégia que mantém a sessão PKCS#11 aberta até <see cref="IDisposable.Dispose"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> é nulo.</exception>
+    /// <exception cref="ArgumentException">Opções incompletas ou mutuamente exclusivas.</exception>
+    /// <exception cref="SmartTokenException">Falha ao abrir o módulo, o token ou a chave PKCS#11.</exception>
     public static ISigningStrategy FromPkcs11(Pkcs11Options options)
     {
         return Pkcs11SigningStrategy.Open(options);
@@ -170,23 +216,21 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
-    /// Converte algoritmo JWT <c>alg</c> para o identificador usado na assinatura (RF-16).
+    /// Normaliza o algoritmo JWT <c>alg</c> para o identificador canônico em maiúsculas (RF-16).
     /// </summary>
-    /// <param name="jwtAlgorithm">Algoritmo JWT (ex.: <c>RS384</c>, <c>ES384</c>).</param>
-    /// <returns>Identificador de algoritmo equivalente.</returns>
+    /// <param name="jwtAlgorithm">Algoritmo JWT (ex.: <c>RS384</c>, <c>es256</c>).</param>
+    /// <returns>Identificador JWT em maiúsculas (ex.: <c>RS384</c>).</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="jwtAlgorithm"/> é nulo.</exception>
     /// <exception cref="SmartTokenException">Algoritmo não suportado.</exception>
-    public static string JwtAlgorithmToJava(string jwtAlgorithm)
+    public static string NormalizeJwtAlgorithm(string jwtAlgorithm)
     {
         ArgumentNullException.ThrowIfNull(jwtAlgorithm);
-        return jwtAlgorithm.ToUpperInvariant() switch
+        var normalized = jwtAlgorithm.ToUpperInvariant();
+        return normalized switch
         {
-            "RS256" => "SHA256withRSA",
-            "RS384" => "SHA384withRSA",
-            "RS512" => "SHA512withRSA",
-            "PS256" or "PS384" or "PS512" => "RSASSA-PSS",
-            "ES256" => "SHA256withECDSAinP1363Format",
-            "ES384" => "SHA384withECDSAinP1363Format",
-            "ES512" => "SHA512withECDSAinP1363Format",
+            "RS256" or "RS384" or "RS512"
+                or "PS256" or "PS384" or "PS512"
+                or "ES256" or "ES384" or "ES512" => normalized,
             _ => throw new SmartTokenException(
                 "Algoritmo JWT n\u00e3o suportado: " + jwtAlgorithm
                 + ". Algoritmos v\u00e1lidos: " + ValidAlgorithms),
@@ -194,11 +238,26 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
+    /// Converte algoritmo JWT <c>alg</c> para um identificador de assinatura legado.
+    /// </summary>
+    /// <param name="jwtAlgorithm">Algoritmo JWT (ex.: <c>RS384</c>, <c>ES384</c>).</param>
+    /// <returns>Identificador legado equivalente (compatibilidade).</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="jwtAlgorithm"/> é nulo.</exception>
+    /// <exception cref="SmartTokenException">Algoritmo não suportado.</exception>
+    [Obsolete("Use NormalizeJwtAlgorithm para o identificador JWT (RS384, ES256, …). Este método devolve nomes no estilo JCA apenas para compatibilidade.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static string JwtAlgorithmToJava(string jwtAlgorithm)
+    {
+        return MapJwtAlgorithmToLegacyIdentifier(NormalizeJwtAlgorithm(jwtAlgorithm));
+    }
+
+    /// <summary>
     /// Devolve parâmetros PSS para algoritmos <c>PS*</c>; nulo para demais algoritmos.
     /// </summary>
     /// <param name="jwtAlgorithm">Algoritmo JWT (ex.: <c>PS384</c>).</param>
     /// <returns>Parâmetros PSS ou <c>null</c> quando não aplicável.</returns>
-    public static PssParameters? PssParameterSpecFor(string jwtAlgorithm)
+    /// <exception cref="ArgumentNullException"><paramref name="jwtAlgorithm"/> é nulo.</exception>
+    public static PssParameters? PssParametersFor(string jwtAlgorithm)
     {
         ArgumentNullException.ThrowIfNull(jwtAlgorithm);
         return jwtAlgorithm.ToUpperInvariant() switch
@@ -211,23 +270,40 @@ public static class SigningStrategyFactory
     }
 
     /// <summary>
+    /// Devolve parâmetros PSS para algoritmos <c>PS*</c>; nulo para demais algoritmos.
+    /// </summary>
+    /// <param name="jwtAlgorithm">Algoritmo JWT (ex.: <c>PS384</c>).</param>
+    /// <returns>Parâmetros PSS ou <c>null</c> quando não aplicável.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="jwtAlgorithm"/> é nulo.</exception>
+    [Obsolete("Use PssParametersFor.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static PssParameters? PssParameterSpecFor(string jwtAlgorithm)
+    {
+        return PssParametersFor(jwtAlgorithm);
+    }
+
+    /// <summary>
     /// Cria estratégia a partir de chave já carregada, mapeando o algoritmo JWT (RF-16).
     /// </summary>
     /// <param name="privateKey">Chave RSA ou ECDSA.</param>
     /// <param name="jwtAlgorithm">Algoritmo JWT desejado no header do assertion.</param>
     /// <returns>Estratégia que não assume ownership da chave.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="privateKey"/> ou <paramref name="jwtAlgorithm"/> é nulo.
+    /// </exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     /// <exception cref="SmartTokenException">Tipo de chave ou algoritmo não suportado.</exception>
     public static ISigningStrategy FromPrivateKeyForJwt(AsymmetricAlgorithm privateKey, string jwtAlgorithm)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
-        var jca = JwtAlgorithmToJava(jwtAlgorithm);
-        var pss = PssParameterSpecFor(jwtAlgorithm);
+        var jwt = NormalizeJwtAlgorithm(jwtAlgorithm);
+        var pss = PssParametersFor(jwt);
         var pssHash = pss is null ? (HashAlgorithmName?)null : HashFromDigest(pss.DigestAlgorithm);
 
         return privateKey switch
         {
-            RSA rsa => new PrivateKeySigningStrategy(rsa, jca, ownsKey: false, pssHash),
-            ECDsa ecdsa => new PrivateKeySigningStrategy(ecdsa, jca, ownsKey: false),
+            RSA rsa => new PrivateKeySigningStrategy(rsa, jwt, ownsKey: false, pssHash),
+            ECDsa ecdsa => new PrivateKeySigningStrategy(ecdsa, jwt, ownsKey: false),
             _ => throw new SmartTokenException(
                 "Tipo de chave n\u00e3o suportado para valida\u00e7\u00e3o: " + privateKey.GetType().Name),
         };
@@ -251,6 +327,21 @@ public static class SigningStrategyFactory
             RSA rsa => new PrivateKeySigningStrategy(rsa, algorithm, ownsKey: true, pssHash),
             ECDsa ecdsa => new PrivateKeySigningStrategy(ecdsa, algorithm, ownsKey: true),
             _ => throw new SmartTokenException("Tipo de chave n\u00e3o suportado: " + key.GetType().Name),
+        };
+    }
+
+    private static string MapJwtAlgorithmToLegacyIdentifier(string jwtAlgorithm)
+    {
+        return jwtAlgorithm switch
+        {
+            "RS256" => "SHA256withRSA",
+            "RS384" => "SHA384withRSA",
+            "RS512" => "SHA512withRSA",
+            "PS256" or "PS384" or "PS512" => "RSASSA-PSS",
+            "ES256" => "SHA256withECDSAinP1363Format",
+            "ES384" => "SHA384withECDSAinP1363Format",
+            "ES512" => "SHA512withECDSAinP1363Format",
+            _ => jwtAlgorithm,
         };
     }
 }

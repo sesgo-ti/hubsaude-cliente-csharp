@@ -18,6 +18,15 @@ public sealed class PrivateKeySigningStrategyTests : IDisposable
     }
 
     [Fact]
+    public void deveAssinarComAlgoritmoJwtRs384()
+    {
+        var strategy = new PrivateKeySigningStrategy(_rsa, "RS384");
+        var dados = Encoding.UTF8.GetBytes("mensagem jwt");
+        var assinatura = strategy.Sign(dados);
+        Assert.True(_rsa.VerifyData(dados, assinatura, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1));
+    }
+
+    [Fact]
     public void deveAssinarComChaveRSA()
     {
         var strategy = new PrivateKeySigningStrategy(_rsa, "SHA384withRSA");
@@ -31,10 +40,22 @@ public sealed class PrivateKeySigningStrategyTests : IDisposable
     public void deveAssinarComDiferentesAlgoritmosRSA()
     {
         var dados = Encoding.UTF8.GetBytes("dados de teste");
-        var sig256 = new PrivateKeySigningStrategy(_rsa, "SHA256withRSA").Sign(dados);
+        var sig256 = new PrivateKeySigningStrategy(_rsa, "RS256").Sign(dados);
         Assert.True(_rsa.VerifyData(dados, sig256, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
-        var sig512 = new PrivateKeySigningStrategy(_rsa, "SHA512withRSA").Sign(dados);
+        var sig512 = new PrivateKeySigningStrategy(_rsa, "RS512").Sign(dados);
         Assert.True(_rsa.VerifyData(dados, sig512, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1));
+        var legado = new PrivateKeySigningStrategy(_rsa, "SHA256withRSA").Sign(dados);
+        Assert.True(_rsa.VerifyData(dados, legado, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+    }
+
+    [Fact]
+    public void deveAssinarEs384ComIdentificadorJwt()
+    {
+        var strategy = new PrivateKeySigningStrategy(_ec, "ES384");
+        var dados = Encoding.UTF8.GetBytes("ecdsa jwt");
+        var assinatura = strategy.Sign(dados);
+        Assert.True(_ec.VerifyData(
+            dados, assinatura, HashAlgorithmName.SHA384, DSASignatureFormat.IeeeP1363FixedFieldConcatenation));
     }
 
     [Fact]

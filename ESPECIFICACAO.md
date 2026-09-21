@@ -8,7 +8,7 @@
 > divergência aparente entre este documento e o [README](README.md),
 > este documento prevalece.
 
-- **Status:** ativo; sincronizado com `hubsaude-cliente-csharp` 0.3.x.
+- **Status:** ativo; sincronizado com `hubsaude-cliente-csharp` 0.4.x.
 - **Público-alvo:** integradores .NET e mantenedores deste repositório.
 - **Identificadores:** `RF-xx` (funcionais) e `RNF-xx` (não funcionais)
   são locais a este documento; não confundir com os requisitos centrais
@@ -605,7 +605,7 @@ não bloqueante (`Task.Delay`).
 
 ## 10. Rastreabilidade — requisito → implementação
 
-Mapeamento para `HubSaude.Cliente` na série `0.3.x`.
+Mapeamento para `HubSaude.Cliente` na série `0.4.x`.
 
 | Requisito | Implementação |
 |-----------|----------------|
@@ -624,7 +624,7 @@ Mapeamento para `HubSaude.Cliente` na série `0.3.x`.
 | RF-13 | `PemLoader` |
 | RF-14 | `CertificateValidator` |
 | RF-15 | `VerifyKeyPairConsistency`, `KeyCertificateConsistency` |
-| RF-16 | `SigningStrategyFactory.JwtAlgorithmToJava` |
+| RF-16 | `SigningStrategyFactory.NormalizeJwtAlgorithm`, `PssParametersFor`, `FromPrivateKeyForJwt` |
 | RF-17 | `ObtainTokenAsync`, `TokenResponse`, `SmartTokenClientBuilder` |
 | RF-18 | `SmartTokenClientBuilder.Build` / `BuildAsync` |
 | RF-19 | `SmartTokenException`, `SigningException` |

@@ -7,6 +7,30 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-10
+
+Fachada pública alinhada a convenções .NET/JWT: mensagens, XML docs e
+nomes de algoritmo sem jargão Java.
+
+### Adicionado
+
+- `SigningStrategyFactory.NormalizeJwtAlgorithm`: valida e devolve o
+  `alg` JWT canônico (`RS384`, `ES256`, …).
+- `SigningStrategyFactory.PssParametersFor`: parâmetros PSS (RFC 7518
+  §3.5) sem o sufixo Java `ParameterSpec`.
+- `PrivateKeySigningStrategy` aceita identificadores JWT (`RS*`, `PS*`,
+  `ES*`) além dos identificadores de assinatura legados.
+
+### Alterado
+
+- Mensagens de erro de PKCS#12 e PEM: `PKCS#12` no lugar de `KeyStore`;
+  formato de chave sem referência a `PemObject`.
+- XML da API pública: `<param>`, `<returns>` e `<exception>` (incluindo
+  `ArgumentNullException`) nos membros que o consumidor vê no
+  IntelliSense.
+- `JwtAlgorithmToJava` e `PssParameterSpecFor` marcados `[Obsolete]`;
+  o mapeamento legado permanece para código existente.
+
 ## [0.4.0] - 2026-09-09
 
 Assinatura em HSM (PKCS#11), mTLS compatível com Schannel no Windows e

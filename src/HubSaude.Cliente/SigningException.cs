@@ -6,6 +6,10 @@ namespace HubSaude.Cliente;
 /// <summary>
 /// Falha durante a operação de assinatura digital da <see cref="ISigningStrategy"/>.
 /// </summary>
+/// <remarks>
+/// Preserva a causa criptográfica original quando disponível. Mensagens não
+/// expõem material de chave.
+/// </remarks>
 public sealed class SigningException : Exception
 {
     /// <summary>

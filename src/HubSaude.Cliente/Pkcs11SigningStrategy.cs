@@ -14,6 +14,10 @@ namespace HubSaude.Cliente;
 /// <see cref="ISigningStrategy"/> que delega a assinatura a um HSM/token PKCS#11.
 /// A chave privada não é extraída do hardware.
 /// </summary>
+/// <remarks>
+/// Instâncias são criadas por <see cref="SigningStrategyFactory.FromPkcs11"/>.
+/// <see cref="Dispose"/> encerra a sessão PKCS#11 de forma idempotente.
+/// </remarks>
 public sealed class Pkcs11SigningStrategy : ISigningStrategy, IDisposable
 {
     private const int PssSaltLen256 = 32;

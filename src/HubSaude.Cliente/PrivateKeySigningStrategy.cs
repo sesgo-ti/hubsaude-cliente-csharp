@@ -11,7 +11,11 @@ namespace HubSaude.Cliente;
 /// </summary>
 public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
 {
-    /// <summary>Algoritmo de assinatura padrão para chaves RSA (<c>SHA384withRSA</c> / RS384).</summary>
+    /// <summary>
+    /// Algoritmo de assinatura padrão para chaves RSA: equivalente a <c>RS384</c>
+    /// (PKCS#1 v1.5 com SHA-384). Novos chamadores devem passar o alg JWT
+    /// (<c>RS384</c>); este valor permanece para compatibilidade.
+    /// </summary>
     public const string DefaultAlgorithm = "SHA384withRSA";
 
     private readonly RSA? _rsa;
@@ -24,6 +28,8 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
     /// Cria estratégia RSA com algoritmo padrão; a chave permanece sob controle do chamador.
     /// </summary>
     /// <param name="privateKey">Chave privada RSA.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="privateKey"/> é nulo.</exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     public PrivateKeySigningStrategy(RSA privateKey)
         : this(privateKey, DefaultAlgorithm, ownsKey: false, pssHash: null)
     {
@@ -33,7 +39,14 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
     /// Cria estratégia RSA com algoritmo de assinatura explícito; a chave permanece sob controle do chamador.
     /// </summary>
     /// <param name="privateKey">Chave privada RSA.</param>
-    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withRSA</c>).</param>
+    /// <param name="algorithm">
+    /// Algoritmo JWT (<c>RS256</c>, <c>RS384</c>, <c>RS512</c>, <c>PS256</c>,
+    /// <c>PS384</c>, <c>PS512</c>) ou identificador de assinatura legado ainda aceito.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="privateKey"/> ou <paramref name="algorithm"/> é nulo.
+    /// </exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     public PrivateKeySigningStrategy(RSA privateKey, string algorithm)
         : this(privateKey, algorithm, ownsKey: false, pssHash: null)
     {
@@ -43,7 +56,14 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
     /// Cria estratégia ECDSA com algoritmo de assinatura explícito; a chave permanece sob controle do chamador.
     /// </summary>
     /// <param name="privateKey">Chave privada ECDSA.</param>
-    /// <param name="algorithm">Identificador de algoritmo (ex.: <c>SHA384withECDSAinP1363Format</c>).</param>
+    /// <param name="algorithm">
+    /// Algoritmo JWT (<c>ES256</c>, <c>ES384</c>, <c>ES512</c>) ou identificador
+    /// de assinatura legado ainda aceito.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="privateKey"/> ou <paramref name="algorithm"/> é nulo.
+    /// </exception>
+    /// <exception cref="ArgumentException">A chave está abaixo do tamanho mínimo aceito.</exception>
     public PrivateKeySigningStrategy(ECDsa privateKey, string algorithm)
         : this(privateKey, algorithm, ownsKey: false)
     {
@@ -95,7 +115,7 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
                 return _rsa.SignData(data, hash, padding);
             }
 
-            if (IsRsaJcaName(Algorithm))
+            if (IsRsaAlgorithm(Algorithm))
             {
                 throw new SigningException("Falha ao assinar dados com algoritmo " + Algorithm);
             }
@@ -131,7 +151,8 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
         string algorithm,
         HashAlgorithmName? pssHash)
     {
-        if (algorithm.Equals("RSASSA-PSS", StringComparison.OrdinalIgnoreCase))
+        var name = algorithm.ToUpperInvariant();
+        if (name.Equals("RSASSA-PSS", StringComparison.Ordinal))
         {
             if (pssHash is null)
             {
@@ -143,33 +164,37 @@ public sealed class PrivateKeySigningStrategy : ISigningStrategy, IDisposable
             return (pssHash.Value, RSASignaturePadding.Pss);
         }
 
-        return algorithm switch
+        return name switch
         {
-            "SHA256withRSA" => (HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1),
-            "SHA384withRSA" => (HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1),
-            "SHA512withRSA" => (HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1),
+            "RS256" or "SHA256WITHRSA" => (HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1),
+            "RS384" or "SHA384WITHRSA" => (HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1),
+            "RS512" or "SHA512WITHRSA" => (HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1),
+            "PS256" => (HashAlgorithmName.SHA256, RSASignaturePadding.Pss),
+            "PS384" => (HashAlgorithmName.SHA384, RSASignaturePadding.Pss),
+            "PS512" => (HashAlgorithmName.SHA512, RSASignaturePadding.Pss),
             _ => throw new CryptographicException("Algoritmo n\u00e3o reconhecido: " + algorithm),
         };
     }
 
-    private static bool IsRsaJcaName(string algorithm)
+    private static bool IsRsaAlgorithm(string algorithm)
     {
-        return algorithm.Contains("RSA", StringComparison.OrdinalIgnoreCase)
-            || algorithm.Equals("RSASSA-PSS", StringComparison.OrdinalIgnoreCase);
+        var name = algorithm.ToUpperInvariant();
+        return name is "RS256" or "RS384" or "RS512" or "PS256" or "PS384" or "PS512"
+            or "RSASSA-PSS"
+            || name.Contains("RSA", StringComparison.Ordinal);
     }
 
     private static HashAlgorithmName ResolveEcdsaHash(string algorithm)
     {
-        if (algorithm.Contains("SHA512", StringComparison.OrdinalIgnoreCase))
+        var name = algorithm.ToUpperInvariant();
+        return name switch
         {
-            return HashAlgorithmName.SHA512;
-        }
-
-        if (algorithm.Contains("SHA384", StringComparison.OrdinalIgnoreCase))
-        {
-            return HashAlgorithmName.SHA384;
-        }
-
-        return HashAlgorithmName.SHA256;
+            "ES256" or "SHA256WITHECDSAINP1363FORMAT" => HashAlgorithmName.SHA256,
+            "ES384" or "SHA384WITHECDSAINP1363FORMAT" => HashAlgorithmName.SHA384,
+            "ES512" or "SHA512WITHECDSAINP1363FORMAT" => HashAlgorithmName.SHA512,
+            _ when name.Contains("SHA512", StringComparison.Ordinal) => HashAlgorithmName.SHA512,
+            _ when name.Contains("SHA384", StringComparison.Ordinal) => HashAlgorithmName.SHA384,
+            _ => HashAlgorithmName.SHA256,
+        };
     }
 }

@@ -19,6 +19,7 @@ public interface ISigningStrategy
     /// <param name="data">Bytes a assinar (em geral, o <c>header.payload</c> do JWT).</param>
     /// <returns>Assinatura em formato bruto (não Base64).</returns>
     /// <exception cref="ArgumentNullException"><paramref name="data"/> é nulo.</exception>
+    /// <exception cref="ObjectDisposedException">A estratégia já foi encerrada.</exception>
     /// <exception cref="SigningException">Falha criptográfica na assinatura.</exception>
     byte[] Sign(byte[] data);
 }
